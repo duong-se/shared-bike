@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 	"gorm.io/gorm"
 )
@@ -15,10 +16,12 @@ type BikeDomainTestSuite struct {
 
 func (s *BikeDomainTestSuite) SetupTest() {
 	mockTime := time.Time{}
+	lat := decimal.NewFromFloat(50.119504)
+	long := decimal.NewFromFloat(8.638137)
 	bike := Bike{
 		ID:        1,
-		Lat:       "50.119504",
-		Long:      "8.638137",
+		Lat:       &lat,
+		Long:      &long,
 		Status:    BikeStatusAvailable,
 		UserID:    nil,
 		CreatedAt: mockTime,

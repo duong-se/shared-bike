@@ -35,6 +35,15 @@ func (r *repositoryImpl) GetByID(ctx context.Context, id int64) (*domain.Bike, e
 	return &bike, nil
 }
 
+func (r *repositoryImpl) CountByUserID(ctx context.Context, id int64) (int64, error) {
+	var total int64
+	err := r.db.Model(domain.Bike{}).Where("user_id = ?", id).Count(&total).Error
+	if err != nil {
+		return 0, err
+	}
+	return total, nil
+}
+
 func (r *repositoryImpl) Update(ctx context.Context, payload *domain.Bike) error {
 	err := r.db.Where("id = ?", payload.ID).Updates(payload).Error
 	if err != nil {

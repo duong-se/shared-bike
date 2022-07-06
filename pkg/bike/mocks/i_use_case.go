@@ -15,15 +15,15 @@ type IUseCase struct {
 }
 
 // GetAllBike provides a mock function with given fields: ctx
-func (_m *IUseCase) GetAllBike(ctx context.Context) ([]domain.Bike, error) {
+func (_m *IUseCase) GetAllBike(ctx context.Context) ([]domain.GetAllBikeResponse, error) {
 	ret := _m.Called(ctx)
 
-	var r0 []domain.Bike
-	if rf, ok := ret.Get(0).(func(context.Context) []domain.Bike); ok {
+	var r0 []domain.GetAllBikeResponse
+	if rf, ok := ret.Get(0).(func(context.Context) []domain.GetAllBikeResponse); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]domain.Bike)
+			r0 = ret.Get(0).([]domain.GetAllBikeResponse)
 		}
 	}
 

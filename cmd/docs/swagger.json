@@ -1,0 +1,22 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a shared bike management.",
+        "title": "Shared Bike API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "Duong Pham",
+            "url": "https://github.com/duong-se",
+            "email": "duongpham@duck.com"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
+    "paths": {},
+    "securityDefinitions": {
+        "BasicAuth": {
+            "type": "basic"
+        }
+    }
+}

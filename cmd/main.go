@@ -7,17 +7,76 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/labstack/echo"
+	_ "shared-bike/docs"
+
+	customMiddleware "github.com/duong-se/shared-bike/middleware"
+	"github.com/duong-se/shared-bike/pkg/bike"
+	"github.com/duong-se/shared-bike/pkg/user"
+	"github.com/gorilla/sessions"
+	"github.com/joho/godotenv"
+	"github.com/labstack/echo-contrib/session"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+	swagger "github.com/swaggo/echo-swagger"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
+const defaultPort = "8080"
+
+// @title           Shared Bike API
+// @version         1.0
+// @description     This is a shared bike management.
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   Duong Pham
+// @contact.url    https://github.com/duong-se
+// @contact.email  duongpham@duck.com
+
+// @host      localhost:8080
+// @BasePath  /api/v1
+
+// @securityDefinitions.basic  BasicAuth
 func main() {
+	godotenv.Load()
+	port := os.Getenv("PORT")
+	connectionString := os.Getenv("DB_CONNECTION_STRING")
+	db, err := gorm.Open(mysql.Open(connectionString), &gorm.Config{})
+	if err != nil {
+		panic(err)
+	}
+	if port == "" {
+		port = defaultPort
+	}
 	// Setup
 	e := echo.New()
+	e.Use(customMiddleware.AddHeaderXRequestID)
+	cookieSecret := os.Getenv("COOKIE_SECRET")
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte(cookieSecret))))
+	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+		Level: 5,
+	}))
 	e.Logger.SetLevel(log.INFO)
 	e.GET("/health", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, "OK")
 	})
+	e.GET("/swagger/*", swagger.WrapHandler)
+	root := e.Group("/api/v1")
+	userRepo := user.NewRepository(db)
+	userUseCase := user.NewUseCase(e.Logger, userRepo)
+	userHandler := user.NewHandler(userUseCase)
+	userAPIs := root.Group("/users")
+	userAPIs.POST("/login", userHandler.Login)
+	userAPIs.POST("/register", userHandler.Register)
+
+	bikeRepo := bike.NewRepository(db)
+	bikeUseCase := bike.NewUseCase(e.Logger, bikeRepo, userRepo)
+	bikeHandler := bike.NewHandler(bikeUseCase)
+	bikeAPIs := root.Group("/bikes", customMiddleware.Authorize)
+	bikeAPIs.GET("", bikeHandler.GetAllBike)
+	bikeAPIs.PATCH("/:id/rent", bikeHandler.Rent)
+	bikeAPIs.PATCH("/:id/return", bikeHandler.Return)
 
 	// Start server
 	go func() {

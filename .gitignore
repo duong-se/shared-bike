@@ -16,3 +16,4 @@ vendor/
 
 # VS Code configuration files
 .vscode/
+.env

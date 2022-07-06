@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/duong-se/shared-bike/domain"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 	sqlmock "gopkg.in/DATA-DOG/go-sqlmock.v1"
 	"gorm.io/driver/mysql"
@@ -51,11 +52,13 @@ func TestBikeRepositoryTestSuite(t *testing.T) {
 func (s *BikeRepositoryTestSuite) TestGetList_Success() {
 	userID := int64(1)
 	mockTime := time.Time{}
+	lat := decimal.NewFromFloat(50.119504)
+	long := decimal.NewFromFloat(8.638137)
 	mockBikes := []domain.Bike{
 		{
 			ID:        1,
-			Lat:       "50.119504",
-			Long:      "8.638137",
+			Lat:       &lat,
+			Long:      &long,
 			Status:    domain.BikeStatusAvailable,
 			UserID:    nil,
 			CreatedAt: mockTime,
@@ -63,8 +66,8 @@ func (s *BikeRepositoryTestSuite) TestGetList_Success() {
 		},
 		{
 			ID:        1,
-			Lat:       "50.119229",
-			Long:      "8.640020",
+			Lat:       &lat,
+			Long:      &long,
 			Status:    domain.BikeStatusRented,
 			UserID:    &userID,
 			CreatedAt: mockTime,
@@ -72,8 +75,8 @@ func (s *BikeRepositoryTestSuite) TestGetList_Success() {
 		},
 		{
 			ID:        1,
-			Lat:       "50.120452",
-			Long:      "8.650507",
+			Lat:       &lat,
+			Long:      &long,
 			Status:    domain.BikeStatusAvailable,
 			UserID:    nil,
 			CreatedAt: mockTime,
@@ -108,10 +111,12 @@ func (s *BikeRepositoryTestSuite) TestGetList_Failed() {
 
 func (s *BikeRepositoryTestSuite) TestGetByID_Success() {
 	mockTime := time.Time{}
+	lat := decimal.NewFromFloat(50.119504)
+	long := decimal.NewFromFloat(8.638137)
 	mockBike := domain.Bike{
 		ID:        1,
-		Lat:       "50.119504",
-		Long:      "8.638137",
+		Lat:       &lat,
+		Long:      &long,
 		UserID:    nil,
 		Status:    domain.BikeStatusAvailable,
 		CreatedAt: mockTime,

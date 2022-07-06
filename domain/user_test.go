@@ -38,7 +38,13 @@ func (s *UserDomainTestSuite) TestHashPassword_Success() {
 }
 
 func (s *UserDomainTestSuite) TestCheckPasswordIsEqual_Success() {
-	s.user.ValidatePassword("testPassword")
+	isValid := s.user.ValidatePassword("testPassword")
+	s.True(isValid)
+}
+
+func (s *UserDomainTestSuite) TestCheckPasswordIsEqual_Failed() {
+	isValid := s.user.ValidatePassword("testPassword1")
+	s.False(isValid)
 }
 
 func (s *UserDomainTestSuite) TestTableName_Success() {

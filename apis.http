@@ -1,0 +1,40 @@
+# Development
+@baseUrl=http://localhost:8000/api/v1
+@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTY4MjM3NTgsIlByb3ZpZGVySUQiOjEsIlBob25lIjoiNDQ3OTM4NTU2NDAzIiwiUm9sZSI6InByb3ZpZGVyIn0.qgJloBIscUqAO3p_PCUC5R0TzaTtOjNJ1gcZsxV-eCE
+
+## User
+@username = test2
+@password = password
+@name=Test User 2
+### register user
+POST {{baseUrl}}/users/register HTTP/1.1
+content-type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}",
+  "name": "{{name}}"
+}
+
+### login user
+POST {{baseUrl}}/users/login HTTP/1.1
+content-type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+
+## Bike
+### get all bikes
+GET {{baseUrl}}/bikes HTTP/1.1
+content-type: application/json
+
+### rent a bike
+PATCH {{baseUrl}}/bikes/1/rent HTTP/1.1
+content-type: application/json
+
+### return a bike
+PATCH {{baseUrl}}/bikes/1/return HTTP/1.1
+content-type: application/json

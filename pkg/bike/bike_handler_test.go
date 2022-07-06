@@ -5,13 +5,16 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/duong-se/shared-bike/apperrors"
 	"github.com/duong-se/shared-bike/domain"
 	"github.com/duong-se/shared-bike/middleware"
 	"github.com/duong-se/shared-bike/pkg/bike/mocks"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
+	"gorm.io/gorm"
 )
 
 type BikeHandlerTestSuite struct {
@@ -34,25 +37,48 @@ func TestBikeHandlerTestSuite(t *testing.T) {
 
 func (s *BikeHandlerTestSuite) TestGetAll_Success() {
 	var (
-		mockContext = context.TODO()
-		mockResult  = []domain.Bike{
+		mockContext    = context.TODO()
+		mockTime       = time.Time{}
+		mockUserID     = int64(1)
+		mockUserResult = []domain.User{
 			{
-				ID:     1,
-				Lat:    "50.119504",
-				Long:   "8.638137",
-				Status: domain.BikeStatusAvailable,
+				ID:        1,
+				Username:  "testUsername",
+				Password:  "testPassword",
+				Name:      "testName",
+				CreatedAt: mockTime,
+				UpdatedAt: mockTime,
+				DeletedAt: gorm.DeletedAt{Valid: false},
+			},
+		}
+
+		mockResult = []domain.GetAllBikeResponse{
+			{
+				ID:               1,
+				Lat:              "50.119504",
+				Long:             "8.638137",
+				Status:           domain.BikeStatusAvailable,
+				UserID:           nil,
+				NameOfRenter:     nil,
+				UsernameOfRenter: nil,
 			},
 			{
-				ID:     1,
-				Lat:    "50.119229",
-				Long:   "8.640020",
-				Status: domain.BikeStatusRented,
+				ID:               1,
+				Lat:              "50.119229",
+				Long:             "8.640020",
+				Status:           domain.BikeStatusRented,
+				UserID:           &mockUserID,
+				NameOfRenter:     &mockUserResult[0].Name,
+				UsernameOfRenter: &mockUserResult[0].Username,
 			},
 			{
-				ID:     1,
-				Lat:    "50.120452",
-				Long:   "8.650507",
-				Status: domain.BikeStatusAvailable,
+				ID:               1,
+				Lat:              "50.120452",
+				Long:             "8.650507",
+				Status:           domain.BikeStatusAvailable,
+				UserID:           nil,
+				NameOfRenter:     nil,
+				UsernameOfRenter: nil,
 			},
 		}
 	)
@@ -61,7 +87,7 @@ func (s *BikeHandlerTestSuite) TestGetAll_Success() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	respBody := `[{"id":1,"lat":"50.119504","long":"8.638137","status":"available","userId":null,"createdAt":"0001-01-01T00:00:00Z","updatedAt":"0001-01-01T00:00:00Z","deletedAt":null},{"id":1,"lat":"50.119229","long":"8.640020","status":"rented","userId":null,"createdAt":"0001-01-01T00:00:00Z","updatedAt":"0001-01-01T00:00:00Z","deletedAt":null},{"id":1,"lat":"50.120452","long":"8.650507","status":"available","userId":null,"createdAt":"0001-01-01T00:00:00Z","updatedAt":"0001-01-01T00:00:00Z","deletedAt":null}]
+	respBody := `[{"id":1,"lat":"50.119504","long":"8.638137","status":"available","userId":null,"nameOfRenter":null,"usernameOfRenter":null},{"id":1,"lat":"50.119229","long":"8.640020","status":"rented","userId":1,"nameOfRenter":"testName","usernameOfRenter":"testUsername"},{"id":1,"lat":"50.120452","long":"8.650507","status":"available","userId":null,"nameOfRenter":null,"usernameOfRenter":null}]
 `
 	c.SetPath("/bikes")
 	s.NoError(s.handlerImpl.GetAllBike(c))
@@ -72,9 +98,8 @@ func (s *BikeHandlerTestSuite) TestGetAll_Success() {
 func (s *BikeHandlerTestSuite) TestGetAll_Failed() {
 	var (
 		mockContext = context.TODO()
-		mockResult  = []domain.Bike{}
 	)
-	s.mockUseCase.On("GetAllBike", mockContext).Return(mockResult, apperrors.ErrInternalServerError)
+	s.mockUseCase.On("GetAllBike", mockContext).Return(nil, apperrors.ErrInternalServerError)
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
@@ -89,12 +114,14 @@ func (s *BikeHandlerTestSuite) TestGetAll_Failed() {
 
 func (s *BikeHandlerTestSuite) TestRent_Success() {
 	var (
+		lat         = decimal.NewFromFloat(50.119504)
+		long        = decimal.NewFromFloat(8.638137)
 		userID      = int64(1)
 		mockContext = context.TODO()
 		mockResult  = domain.Bike{
 			ID:     1,
-			Lat:    "50.119504",
-			Long:   "8.638137",
+			Lat:    &lat,
+			Long:   &long,
 			Status: domain.BikeStatusRented,
 			UserID: &userID,
 		}
@@ -162,11 +189,13 @@ func (s *BikeHandlerTestSuite) TestRent_FailedParams() {
 
 func (s *BikeHandlerTestSuite) TestReturn_Success() {
 	var (
+		lat         = decimal.NewFromFloat(50.119504)
+		long        = decimal.NewFromFloat(8.638137)
 		mockContext = context.TODO()
 		mockResult  = domain.Bike{
 			ID:     1,
-			Lat:    "50.119504",
-			Long:   "8.638137",
+			Lat:    &lat,
+			Long:   &long,
 			Status: domain.BikeStatusAvailable,
 			UserID: nil,
 		}

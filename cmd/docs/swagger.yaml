@@ -1,0 +1,16 @@
+basePath: /api/v1
+host: localhost:8080
+info:
+  contact:
+    email: duongpham@duck.com
+    name: Duong Pham
+    url: https://github.com/duong-se
+  description: This is a shared bike management.
+  termsOfService: http://swagger.io/terms/
+  title: Shared Bike API
+  version: "1.0"
+paths: {}
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"
