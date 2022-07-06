@@ -7,10 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/duong-se/shared-bike/apperrors"
-	"github.com/duong-se/shared-bike/domain"
-	"github.com/duong-se/shared-bike/middleware"
-	"github.com/duong-se/shared-bike/pkg/bike/mocks"
+	"shared-bike/apperrors"
+	"shared-bike/domain"
+	"shared-bike/middleware"
+	"shared-bike/pkg/bike/mocks"
+
 	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"

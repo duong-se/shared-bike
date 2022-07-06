@@ -4,9 +4,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/duong-se/shared-bike/apperrors"
-	"github.com/duong-se/shared-bike/domain"
-	"github.com/duong-se/shared-bike/middleware"
+	"shared-bike/apperrors"
+	"shared-bike/domain"
+	"shared-bike/middleware"
+
 	"github.com/labstack/echo/v4"
 )
 

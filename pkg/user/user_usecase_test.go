@@ -5,9 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/duong-se/shared-bike/apperrors"
-	"github.com/duong-se/shared-bike/domain"
-	"github.com/duong-se/shared-bike/pkg/user/mocks"
+	"shared-bike/apperrors"
+	"shared-bike/domain"
+	"shared-bike/pkg/user/mocks"
+
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"gorm.io/gorm"

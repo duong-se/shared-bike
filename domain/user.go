@@ -9,14 +9,14 @@ import (
 )
 
 type RegisterPayload struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Name     string `json:"name"`
+	Username string `json:"username" example:"myusername"`
+	Password string `json:"password" example:"mypassword"`
+	Name     string `json:"name" example:"myname"`
 }
 
 type LoginPayload struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" example:"myusername"`
+	Password string `json:"password" example:"mypassword"`
 }
 
 type User struct {

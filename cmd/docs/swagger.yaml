@@ -1,15 +1,95 @@
 basePath: /api/v1
-host: localhost:8080
+definitions:
+  domain.LoginPayload:
+    properties:
+      password:
+        example: mypassword
+        type: string
+      username:
+        example: myusername
+        type: string
+    type: object
+  domain.RegisterPayload:
+    properties:
+      name:
+        example: myname
+        type: string
+      password:
+        example: mypassword
+        type: string
+      username:
+        example: myusername
+        type: string
+    type: object
 info:
   contact:
     email: duongpham@duck.com
     name: Duong Pham
     url: https://github.com/duong-se
   description: This is a shared bike management.
-  termsOfService: http://swagger.io/terms/
   title: Shared Bike API
   version: "1.0"
-paths: {}
+paths:
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Login by username and password
+      parameters:
+      - description: Login payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.LoginPayload'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: ""
+        "400":
+          description: invalid payload
+          schema:
+            type: string
+        "404":
+          description: username or password is wrong
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Login
+      tags:
+      - users
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      description: Register by username and password
+      parameters:
+      - description: Register payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RegisterPayload'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: ""
+        "400":
+          description: invalid payload
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Register
+      tags:
+      - users
 securityDefinitions:
   BasicAuth:
     type: basic

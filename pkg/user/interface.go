@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 
-	"github.com/duong-se/shared-bike/domain"
+	"shared-bike/domain"
 )
 
 type IRepository interface {

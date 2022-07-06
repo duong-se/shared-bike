@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/duong-se/shared-bike/apperrors"
-	"github.com/duong-se/shared-bike/domain"
+	"shared-bike/apperrors"
+	"shared-bike/domain"
+
 	"gorm.io/gorm"
 )
 

@@ -1,7 +1,8 @@
 package middleware
 
 import (
-	"github.com/duong-se/shared-bike/apperrors"
+	"shared-bike/apperrors"
+
 	"github.com/google/uuid"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"

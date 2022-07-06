@@ -6,7 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/duong-se/shared-bike/domain"
+	"shared-bike/domain"
+
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
 	sqlmock "gopkg.in/DATA-DOG/go-sqlmock.v1"

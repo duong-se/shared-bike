@@ -3,8 +3,11 @@ package user
 import (
 	"net/http"
 
-	"github.com/duong-se/shared-bike/domain"
-	"github.com/duong-se/shared-bike/middleware"
+	"shared-bike/domain"
+	"shared-bike/middleware"
+
+	"shared-bike/apperrors"
+
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -20,6 +23,18 @@ func NewHandler(usecase IUseCase) *handlerImpl {
 	}
 }
 
+// Login godoc
+// @Summary      Login
+// @Description  Login by username and password
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param    		 request  body      domain.LoginPayload  true  "Login payload"
+// @Success      204
+// @Failure      400  {string}  string 	"invalid payload"
+// @Failure      404  {string}  string 	"username or password is wrong"
+// @Failure      500  {string}  string 	"internal server error"
+// @Router       /users/login [post]
 func (h *handlerImpl) Login(c echo.Context) error {
 	ctx := c.Request().Context()
 	payload := domain.LoginPayload{}
@@ -31,11 +46,11 @@ func (h *handlerImpl) Login(c echo.Context) error {
 	user, err := h.usecase.Login(ctx, payload)
 	if err != nil {
 		c.Logger().Error("[UserHandler.Login] login failed", err)
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(apperrors.GetStatusCode(err), err.Error())
 	}
 	c.Logger().Info("[UserHandler.Login] login success")
 	h.setSession(user, c)
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusNoContent, nil)
 }
 
 func (h *handlerImpl) setSession(user domain.User, c echo.Context) error {
@@ -55,6 +70,17 @@ func (h *handlerImpl) setSession(user domain.User, c echo.Context) error {
 	return nil
 }
 
+// Register godoc
+// @Summary      Register
+// @Description  Register by username and password
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param    		 request  body      domain.RegisterPayload  true  "Register payload"
+// @Success      204
+// @Failure      400  {string}  string 	"invalid payload"
+// @Failure      500  {string}  string 	"internal server error"
+// @Router       /users/register [post]
 func (h *handlerImpl) Register(c echo.Context) error {
 	c.Logger().Info("[UserHandler.Register] register is starting")
 	ctx := c.Request().Context()
@@ -66,7 +92,7 @@ func (h *handlerImpl) Register(c echo.Context) error {
 	user, err := h.usecase.Register(ctx, payload)
 	if err != nil {
 		c.Logger().Error("[UserHandler.Register] register failed", err)
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(apperrors.GetStatusCode(err), err.Error())
 	}
 	c.Logger().Info("[UserHandler.Register] register success")
 	h.setSession(user, c)

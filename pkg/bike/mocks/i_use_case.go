@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	domain "github.com/duong-se/shared-bike/domain"
+	domain "shared-bike/domain"
 	mock "github.com/stretchr/testify/mock"
 )
 

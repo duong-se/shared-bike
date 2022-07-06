@@ -10,3 +10,6 @@ clean:
 	@rm -rf main
 test:
 	@go test -v -race ./...
+swagger:
+	go install github.com/swaggo/swag/cmd/swag@latest
+	swag init --parseDependency --parseDepth 1 --dir ./cmd

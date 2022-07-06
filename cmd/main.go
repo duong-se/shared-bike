@@ -7,11 +7,11 @@ import (
 	"os/signal"
 	"time"
 
-	_ "shared-bike/docs"
+	docs "shared-bike/cmd/docs"
+	customMiddleware "shared-bike/middleware"
+	"shared-bike/pkg/bike"
+	"shared-bike/pkg/user"
 
-	customMiddleware "github.com/duong-se/shared-bike/middleware"
-	"github.com/duong-se/shared-bike/pkg/bike"
-	"github.com/duong-se/shared-bike/pkg/user"
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo-contrib/session"
@@ -25,23 +25,22 @@ import (
 
 const defaultPort = "8080"
 
-// @title           Shared Bike API
-// @version         1.0
-// @description     This is a shared bike management.
-// @termsOfService  http://swagger.io/terms/
-
-// @contact.name   Duong Pham
-// @contact.url    https://github.com/duong-se
-// @contact.email  duongpham@duck.com
-
-// @host      localhost:8080
-// @BasePath  /api/v1
-
+// @title                      Shared Bike API
+// @version                    1.0
+// @description                This is a shared bike management.
+// @contact.name               Duong Pham
+// @contact.url                https://github.com/duong-se
+// @contact.email              duongpham@duck.com
+// @BasePath                   /api/v1
 // @securityDefinitions.basic  BasicAuth
 func main() {
 	godotenv.Load()
 	port := os.Getenv("PORT")
 	connectionString := os.Getenv("DB_CONNECTION_STRING")
+	tls := os.Getenv("TLS")
+	baseURl := os.Getenv("BASE_URL")
+	docs.SwaggerInfo.Schemes = []string{tls}
+	docs.SwaggerInfo.Host = baseURl
 	db, err := gorm.Open(mysql.Open(connectionString), &gorm.Config{})
 	if err != nil {
 		panic(err)

@@ -3,7 +3,8 @@ package bike
 import (
 	"context"
 
-	"github.com/duong-se/shared-bike/domain"
+	"shared-bike/domain"
+
 	"gorm.io/gorm"
 )
 

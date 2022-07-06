@@ -1,0 +1,41 @@
+basePath: /api/v1
+info:
+  contact:
+    email: duongpham@duck.com
+    name: Duong Pham
+    url: https://github.com/duong-se
+  description: This is a shared bike management.
+  title: Shared Bike API
+  version: "1.0"
+paths:
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: get string by ID
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: invalid payload
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Show an account
+      tags:
+      - users
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"
