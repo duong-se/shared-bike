@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"time"
 
-	docs "shared-bike/cmd/docs"
+	docs "shared-bike/docs"
 	customMiddleware "shared-bike/middleware"
 	"shared-bike/pkg/bike"
 	"shared-bike/pkg/user"

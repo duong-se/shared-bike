@@ -82,7 +82,7 @@ func (s *BikeUseCaseTestSuite) TestGetAllBike_Success() {
 				DeletedAt: gorm.DeletedAt{Valid: false},
 			},
 		}
-		mockResult = []domain.GetAllBikeResponse{
+		mockResult = []domain.BikeDTO{
 			{
 				ID:               1,
 				Lat:              "50.119504",
@@ -119,10 +119,113 @@ func (s *BikeUseCaseTestSuite) TestGetAllBike_Success() {
 	s.Nil(err)
 }
 
+func (s *BikeUseCaseTestSuite) TestGetAllBike_FetchUserListEmpty() {
+	var (
+		mockContext = context.TODO()
+		mockUserID  = int64(1)
+		lat         = decimal.NewFromFloat(50.119504)
+		long        = decimal.NewFromFloat(8.638137)
+		mockBike    = []domain.Bike{
+			{
+				ID:     1,
+				Lat:    &lat,
+				Long:   &long,
+				Status: domain.BikeStatusAvailable,
+				UserID: nil,
+			},
+			{
+				ID:     1,
+				Lat:    &lat,
+				Long:   &long,
+				Status: domain.BikeStatusRented,
+				UserID: &mockUserID,
+			},
+			{
+				ID:     1,
+				Lat:    &lat,
+				Long:   &long,
+				Status: domain.BikeStatusAvailable,
+				UserID: nil,
+			},
+		}
+		mockResult = []domain.BikeDTO{
+			{
+				ID:               1,
+				Lat:              "50.119504",
+				Long:             "8.638137",
+				Status:           domain.BikeStatusAvailable,
+				UserID:           nil,
+				NameOfRenter:     nil,
+				UsernameOfRenter: nil,
+			},
+			{
+				ID:               1,
+				Lat:              "50.119504",
+				Long:             "8.638137",
+				Status:           domain.BikeStatusRented,
+				UserID:           &mockUserID,
+				NameOfRenter:     nil,
+				UsernameOfRenter: nil,
+			},
+			{
+				ID:               1,
+				Lat:              "50.119504",
+				Long:             "8.638137",
+				Status:           domain.BikeStatusAvailable,
+				UserID:           nil,
+				NameOfRenter:     nil,
+				UsernameOfRenter: nil,
+			},
+		}
+	)
+	s.mockRepository.On("GetList", mockContext).Return(&mockBike, nil)
+	s.mockUserRepository.On("GetListByIDs", mockContext, []int64{1}).Return(nil, gorm.ErrRecordNotFound)
+	actual, err := s.useCaseImpl.GetAllBike(mockContext)
+	s.Equal(mockResult, actual)
+	s.Nil(err)
+}
+
+func (s *BikeUseCaseTestSuite) TestGetAllBike_CannotFetchUserList() {
+	var (
+		mockContext = context.TODO()
+		mockUserID  = int64(1)
+		lat         = decimal.NewFromFloat(50.119504)
+		long        = decimal.NewFromFloat(8.638137)
+		mockBike    = []domain.Bike{
+			{
+				ID:     1,
+				Lat:    &lat,
+				Long:   &long,
+				Status: domain.BikeStatusAvailable,
+				UserID: nil,
+			},
+			{
+				ID:     1,
+				Lat:    &lat,
+				Long:   &long,
+				Status: domain.BikeStatusRented,
+				UserID: &mockUserID,
+			},
+			{
+				ID:     1,
+				Lat:    &lat,
+				Long:   &long,
+				Status: domain.BikeStatusAvailable,
+				UserID: nil,
+			},
+		}
+	)
+	s.mockRepository.On("GetList", mockContext).Return(&mockBike, nil)
+	s.mockUserRepository.On("GetListByIDs", mockContext, []int64{1}).Return(nil, gorm.ErrDryRunModeUnsupported)
+	actual, err := s.useCaseImpl.GetAllBike(mockContext)
+	s.Equal([]domain.BikeDTO{}, actual)
+	s.Error(apperrors.ErrInternalServerError, err)
+}
+
 func (s *BikeUseCaseTestSuite) TestGetAllBike_RecordNotFound() {
 	var (
 		mockContext = context.TODO()
-		mockResult  = []domain.GetAllBikeResponse{}
+		mockResult  = []domain.BikeDTO{}
 	)
 	s.mockRepository.On("GetList", mockContext).Return(nil, gorm.ErrRecordNotFound)
 	actual, err := s.useCaseImpl.GetAllBike(mockContext)
@@ -133,7 +236,7 @@ func (s *BikeUseCaseTestSuite) TestGetAllBike_RecordNotFound() {
 func (s *BikeUseCaseTestSuite) TestGetAllBike_InternalServerError() {
 	var (
 		mockContext = context.TODO()
-		mockResult  = []domain.GetAllBikeResponse{}
+		mockResult  = []domain.BikeDTO{}
 	)
 	s.mockRepository.On("GetList", mockContext).Return(nil, gorm.ErrInvalidData)
 	actual, err := s.useCaseImpl.GetAllBike(mockContext)
@@ -158,6 +261,16 @@ func (s *BikeUseCaseTestSuite) TestRent_Success() {
 			Status: domain.BikeStatusAvailable,
 			UserID: nil,
 		}
+		mockTime       = time.Time{}
+		mockUserResult = domain.User{
+			ID:        1,
+			Username:  "testUsername",
+			Password:  "$2a$10$Mjx4fmq9ykGxlqlT/l9yGuojZ0FLV8QmrDhGwxmdE3QdkaXQgCcMG",
+			Name:      "testName",
+			CreatedAt: mockTime,
+			UpdatedAt: mockTime,
+			DeletedAt: gorm.DeletedAt{Valid: false},
+		}
 		mockResult = domain.Bike{
 			ID:     1,
 			Lat:    &lat,
@@ -165,12 +278,81 @@ func (s *BikeUseCaseTestSuite) TestRent_Success() {
 			Status: domain.BikeStatusRented,
 			UserID: &userID,
 		}
+		expected = domain.BikeDTO{
+			ID:               1,
+			Lat:              lat.String(),
+			Long:             long.String(),
+			Status:           domain.BikeStatusRented,
+			UserID:           &mockUserResult.ID,
+			NameOfRenter:     &mockUserResult.Name,
+			UsernameOfRenter: &mockUserResult.Username,
+		}
 	)
+	s.mockRepository.On("CountByUserID", mockContext, mockInput.UserID).Return(int64(0), nil)
+	s.mockUserRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockUserResult, nil)
 	s.mockRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockExistRecord, nil)
 	s.mockRepository.On("Update", mockContext, &mockResult).Return(nil)
 	actual, err := s.useCaseImpl.Rent(mockContext, mockInput)
-	s.Equal(mockResult, *actual)
+	s.Equal(expected, actual)
 	s.Nil(err)
+}
+
+func (s *BikeUseCaseTestSuite) TestRent_FailedByAlreadyRented() {
+	var (
+		mockContext = context.TODO()
+		mockInput   = domain.RentOrReturnRequestPayload{
+			ID:     1,
+			UserID: 1,
+		}
+	)
+	s.mockRepository.On("CountByUserID", mockContext, mockInput.UserID).Return(int64(1), nil)
+	actual, err := s.useCaseImpl.Rent(mockContext, mockInput)
+	s.Equal(domain.BikeDTO{}, actual)
+	s.Equal(apperrors.ErrUserHasBikeAlready, err)
+}
+
+func (s *BikeUseCaseTestSuite) TestRent_FailedByCountByUserID() {
+	var (
+		mockContext = context.TODO()
+		mockInput   = domain.RentOrReturnRequestPayload{
+			ID:     1,
+			UserID: 1,
+		}
+	)
+	s.mockRepository.On("CountByUserID", mockContext, mockInput.UserID).Return(int64(0), gorm.ErrInvalidValue)
+	actual, err := s.useCaseImpl.Rent(mockContext, mockInput)
+	s.Equal(domain.BikeDTO{}, actual)
+	s.Equal(apperrors.ErrInternalServerError, err)
+}
+
+func (s *BikeUseCaseTestSuite) TestRent_NotFoundCurrentUser() {
+	var (
+		mockContext = context.TODO()
+		mockInput   = domain.RentOrReturnRequestPayload{
+			ID:     1,
+			UserID: 1,
+		}
+	)
+	s.mockRepository.On("CountByUserID", mockContext, mockInput.UserID).Return(int64(0), nil)
+	s.mockUserRepository.On("GetByID", mockContext, mockInput.ID).Return(nil, gorm.ErrRecordNotFound)
+	actual, err := s.useCaseImpl.Rent(mockContext, mockInput)
+	s.Equal(domain.BikeDTO{}, actual)
+	s.Equal(apperrors.ErrUserNotExisted, err)
+}
+
+func (s *BikeUseCaseTestSuite) TestRent_ErrorOnFetchCurrentUser() {
+	var (
+		mockContext = context.TODO()
+		mockInput   = domain.RentOrReturnRequestPayload{
+			ID:     1,
+			UserID: 1,
+		}
+	)
+	s.mockRepository.On("CountByUserID", mockContext, mockInput.UserID).Return(int64(0), nil)
+	s.mockUserRepository.On("GetByID", mockContext, mockInput.ID).Return(nil, gorm.ErrInvalidField)
+	actual, err := s.useCaseImpl.Rent(mockContext, mockInput)
+	s.Equal(domain.BikeDTO{}, actual)
+	s.Equal(apperrors.ErrInternalServerError, err)
 }
 
 func (s *BikeUseCaseTestSuite) TestRent_NotFoundData() {
@@ -180,10 +362,22 @@ func (s *BikeUseCaseTestSuite) TestRent_NotFoundData() {
 			ID:     1,
 			UserID: 1,
 		}
+		mockTime       = time.Time{}
+		mockUserResult = domain.User{
+			ID:        1,
+			Username:  "testUsername",
+			Password:  "$2a$10$Mjx4fmq9ykGxlqlT/l9yGuojZ0FLV8QmrDhGwxmdE3QdkaXQgCcMG",
+			Name:      "testName",
+			CreatedAt: mockTime,
+			UpdatedAt: mockTime,
+			DeletedAt: gorm.DeletedAt{Valid: false},
+		}
 	)
+	s.mockRepository.On("CountByUserID", mockContext, mockInput.UserID).Return(int64(0), nil)
+	s.mockUserRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockUserResult, nil)
 	s.mockRepository.On("GetByID", mockContext, mockInput.ID).Return(nil, gorm.ErrRecordNotFound)
 	actual, err := s.useCaseImpl.Rent(mockContext, mockInput)
-	s.Nil(actual)
+	s.Equal(domain.BikeDTO{}, actual)
 	s.Equal(apperrors.ErrBikeNotFound, err)
 }
 
@@ -204,10 +398,22 @@ func (s *BikeUseCaseTestSuite) TestRent_NotAvailableByUserIDAndStatus() {
 			Status: domain.BikeStatusRented,
 			UserID: &userID,
 		}
+		mockTime       = time.Time{}
+		mockUserResult = domain.User{
+			ID:        1,
+			Username:  "testUsername",
+			Password:  "$2a$10$Mjx4fmq9ykGxlqlT/l9yGuojZ0FLV8QmrDhGwxmdE3QdkaXQgCcMG",
+			Name:      "testName",
+			CreatedAt: mockTime,
+			UpdatedAt: mockTime,
+			DeletedAt: gorm.DeletedAt{Valid: false},
+		}
 	)
+	s.mockRepository.On("CountByUserID", mockContext, mockInput.UserID).Return(int64(0), nil)
+	s.mockUserRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockUserResult, nil)
 	s.mockRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockExistRecord, nil)
 	actual, err := s.useCaseImpl.Rent(mockContext, mockInput)
-	s.Nil(actual)
+	s.Equal(domain.BikeDTO{}, actual)
 	s.Equal(apperrors.ErrBikeRented, err)
 }
 
@@ -218,10 +424,22 @@ func (s *BikeUseCaseTestSuite) TestRent_InternalServerErrorWhenFetchCurrentBike(
 			ID:     1,
 			UserID: 1,
 		}
+		mockTime       = time.Time{}
+		mockUserResult = domain.User{
+			ID:        1,
+			Username:  "testUsername",
+			Password:  "$2a$10$Mjx4fmq9ykGxlqlT/l9yGuojZ0FLV8QmrDhGwxmdE3QdkaXQgCcMG",
+			Name:      "testName",
+			CreatedAt: mockTime,
+			UpdatedAt: mockTime,
+			DeletedAt: gorm.DeletedAt{Valid: false},
+		}
 	)
+	s.mockRepository.On("CountByUserID", mockContext, mockInput.UserID).Return(int64(0), nil)
+	s.mockUserRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockUserResult, nil)
 	s.mockRepository.On("GetByID", mockContext, mockInput.ID).Return(nil, gorm.ErrInvalidData)
 	actual, err := s.useCaseImpl.Rent(mockContext, mockInput)
-	s.Nil(actual)
+	s.Equal(domain.BikeDTO{}, actual)
 	s.Equal(apperrors.ErrInternalServerError, err)
 }
 
@@ -249,11 +467,23 @@ func (s *BikeUseCaseTestSuite) TestRent_InternalServerErrorWhenUpdate() {
 			Status: domain.BikeStatusRented,
 			UserID: &userID,
 		}
+		mockTime       = time.Time{}
+		mockUserResult = domain.User{
+			ID:        1,
+			Username:  "testUsername",
+			Password:  "$2a$10$Mjx4fmq9ykGxlqlT/l9yGuojZ0FLV8QmrDhGwxmdE3QdkaXQgCcMG",
+			Name:      "testName",
+			CreatedAt: mockTime,
+			UpdatedAt: mockTime,
+			DeletedAt: gorm.DeletedAt{Valid: false},
+		}
 	)
+	s.mockRepository.On("CountByUserID", mockContext, mockInput.UserID).Return(int64(0), nil)
+	s.mockUserRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockUserResult, nil)
 	s.mockRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockExistRecord, nil)
 	s.mockRepository.On("Update", mockContext, &mockUpdateInput).Return(gorm.ErrInvalidData)
 	actual, err := s.useCaseImpl.Rent(mockContext, mockInput)
-	s.Nil(actual)
+	s.Equal(domain.BikeDTO{}, actual)
 	s.Equal(apperrors.ErrInternalServerError, err)
 }
 
@@ -285,7 +515,7 @@ func (s *BikeUseCaseTestSuite) TestReturn_Success() {
 	s.mockRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockExistRecord, nil)
 	s.mockRepository.On("Update", mockContext, &mockResult).Return(nil)
 	actual, err := s.useCaseImpl.Return(mockContext, mockInput)
-	s.Equal(mockResult, *actual)
+	s.Equal(mockResult.ToDTO(), actual)
 	s.Nil(err)
 }
 
@@ -317,7 +547,7 @@ func (s *BikeUseCaseTestSuite) TestReturn_InternalServerErrorWhenUpdate() {
 	s.mockRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockExistRecord, nil)
 	s.mockRepository.On("Update", mockContext, &mockResult).Return(gorm.ErrEmptySlice)
 	actual, err := s.useCaseImpl.Return(mockContext, mockInput)
-	s.Nil(actual)
+	s.Equal(domain.BikeDTO{}, actual)
 	s.Equal(apperrors.ErrInternalServerError, err)
 }
 
@@ -331,7 +561,7 @@ func (s *BikeUseCaseTestSuite) TestReturn_InternalServerErrorWhenGetByID() {
 	)
 	s.mockRepository.On("GetByID", mockContext, mockInput.ID).Return(nil, gorm.ErrInvalidDB)
 	actual, err := s.useCaseImpl.Return(mockContext, mockInput)
-	s.Nil(actual)
+	s.Equal(domain.BikeDTO{}, actual)
 	s.Equal(apperrors.ErrInternalServerError, err)
 }
 
@@ -345,7 +575,7 @@ func (s *BikeUseCaseTestSuite) TestReturn_NotFoundBike() {
 	)
 	s.mockRepository.On("GetByID", mockContext, mockInput.ID).Return(nil, gorm.ErrRecordNotFound)
 	actual, err := s.useCaseImpl.Return(mockContext, mockInput)
-	s.Nil(actual)
+	s.Equal(domain.BikeDTO{}, actual)
 	s.Equal(apperrors.ErrBikeNotFound, err)
 }
 
@@ -368,7 +598,7 @@ func (s *BikeUseCaseTestSuite) TestReturn_BikeNotAvailable() {
 	)
 	s.mockRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockExistRecord, nil)
 	actual, err := s.useCaseImpl.Return(mockContext, mockInput)
-	s.Nil(actual)
+	s.Equal(domain.BikeDTO{}, actual)
 	s.Equal(apperrors.ErrBikeAvailable, err)
 }
 
@@ -392,6 +622,6 @@ func (s *BikeUseCaseTestSuite) TestReturn_BikeIsNotYours() {
 	)
 	s.mockRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockExistRecord, nil)
 	actual, err := s.useCaseImpl.Return(mockContext, mockInput)
-	s.Nil(actual)
+	s.Equal(domain.BikeDTO{}, actual)
 	s.Equal(apperrors.ErrBikeNotYours, err)
 }

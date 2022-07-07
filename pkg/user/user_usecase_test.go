@@ -39,7 +39,7 @@ func TestUserUseCaseTestSuite(t *testing.T) {
 
 func (s *UserUseCaseTestSuite) TestLogin_Success() {
 	mockContext := context.TODO()
-	mockPayload := domain.LoginPayload{
+	mockPayload := domain.LoginBody{
 		Username: "testUsername",
 		Password: "testPassword",
 	}
@@ -54,26 +54,26 @@ func (s *UserUseCaseTestSuite) TestLogin_Success() {
 		DeletedAt: gorm.DeletedAt{Valid: false},
 	}
 	s.mockRepository.On("GetByUsername", mockContext, mockPayload.Username).Return(&mockUserResult, nil)
-	result, err := s.useCaseImpl.Login(context.TODO(), mockPayload)
+	actual, err := s.useCaseImpl.Login(context.TODO(), mockPayload)
 	s.Nil(err)
-	s.True(result)
+	s.Equal(mockUserResult.ToDTO(), actual)
 }
 
 func (s *UserUseCaseTestSuite) TestLogin_FailedByUserNotFound() {
 	mockContext := context.TODO()
-	mockPayload := domain.LoginPayload{
+	mockPayload := domain.LoginBody{
 		Username: "testUsername",
 		Password: "testPassword",
 	}
 	s.mockRepository.On("GetByUsername", mockContext, mockPayload.Username).Return(nil, gorm.ErrRecordNotFound)
-	result, err := s.useCaseImpl.Login(context.TODO(), mockPayload)
-	s.Equal(apperrors.ErrUserNotFound, err)
-	s.False(result)
+	actual, err := s.useCaseImpl.Login(context.TODO(), mockPayload)
+	s.Equal(apperrors.ErrUserLoginNotFound, err)
+	s.Equal(domain.UserDTO{}, actual)
 }
 
 func (s *UserUseCaseTestSuite) TestLogin_FailedByPassword() {
 	mockContext := context.TODO()
-	mockPayload := domain.LoginPayload{
+	mockPayload := domain.LoginBody{
 		Username: "testUsername",
 		Password: "testPassword1",
 	}
@@ -88,43 +88,50 @@ func (s *UserUseCaseTestSuite) TestLogin_FailedByPassword() {
 		DeletedAt: gorm.DeletedAt{Valid: false},
 	}
 	s.mockRepository.On("GetByUsername", mockContext, mockPayload.Username).Return(&mockUserResult, nil)
-	result, err := s.useCaseImpl.Login(context.TODO(), mockPayload)
-	s.Equal(apperrors.ErrUserNotFound, err)
-	s.False(result)
+	actual, err := s.useCaseImpl.Login(context.TODO(), mockPayload)
+	s.Equal(apperrors.ErrUserLoginNotFound, err)
+	s.Equal(domain.UserDTO{}, actual)
 }
 
 func (s *UserUseCaseTestSuite) TestLogin_FailedByInternalError() {
 	mockContext := context.TODO()
-	mockPayload := domain.LoginPayload{
+	mockPayload := domain.LoginBody{
 		Username: "testUsername",
 		Password: "testPassword",
 	}
 	s.mockRepository.On("GetByUsername", mockContext, mockPayload.Username).Return(nil, gorm.ErrInvalidValue)
-	result, err := s.useCaseImpl.Login(context.TODO(), mockPayload)
+	actual, err := s.useCaseImpl.Login(context.TODO(), mockPayload)
 	s.Equal(apperrors.ErrInternalServerError, err)
-	s.False(result)
+	s.Equal(domain.UserDTO{}, actual)
 }
 
 func (s *UserUseCaseTestSuite) TestRegister_Success() {
 	mockContext := context.TODO()
-	mockPayload := domain.RegisterPayload{
+	mockPayload := domain.RegisterBody{
 		Username: "testUsername",
 		Password: "testPassword",
 		Name:     "testName",
 	}
+	mockUserResult := domain.UserDTO{
+		ID:       0,
+		Username: "testUsername",
+		Name:     "testName",
+	}
 	s.mockRepository.On("Create", mockContext, mock.Anything).Return(nil)
-	err := s.useCaseImpl.Register(context.TODO(), mockPayload)
+	actual, err := s.useCaseImpl.Register(context.TODO(), mockPayload)
 	s.Nil(err)
+	s.Equal(mockUserResult, actual)
 }
 
 func (s *UserUseCaseTestSuite) TestRegister_Failed() {
 	mockContext := context.TODO()
-	mockPayload := domain.RegisterPayload{
+	mockPayload := domain.RegisterBody{
 		Username: "testUsername",
 		Password: "testPassword",
 		Name:     "testName",
 	}
 	s.mockRepository.On("Create", mockContext, mock.Anything).Return(gorm.ErrInvalidDB)
-	err := s.useCaseImpl.Register(context.TODO(), mockPayload)
+	actual, err := s.useCaseImpl.Register(context.TODO(), mockPayload)
 	s.Equal(apperrors.ErrInternalServerError, err)
+	s.Equal(domain.UserDTO{}, actual)
 }

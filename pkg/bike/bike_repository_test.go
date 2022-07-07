@@ -168,3 +168,21 @@ func (s *BikeRepositoryTestSuite) TestUpdate_Failed() {
 	err := s.repositoryImpl.Update(context.TODO(), &updatedVariables)
 	s.Equal(gorm.ErrRecordNotFound, err)
 }
+
+func (s *BikeRepositoryTestSuite) TestCountByUserID_Success() {
+	query := regexp.QuoteMeta("SELECT count(*) FROM `bike` WHERE user_id = ? AND `bike`.`deleted_at` IS NULL")
+	row := sqlmock.NewRows([]string{"count"}).
+		AddRow(int64(1))
+	s.mockDB.ExpectQuery(query).WithArgs(sqlmock.AnyArg()).WillReturnRows(row)
+	actual, err := s.repositoryImpl.CountByUserID(context.TODO(), int64(1))
+	s.Equal(int64(1), actual)
+	s.Nil(err)
+}
+
+func (s *BikeRepositoryTestSuite) TestCountByUserID_Failed() {
+	query := regexp.QuoteMeta("SELECT count(*) FROM `bike` WHERE user_id = ? AND `bike`.`deleted_at` IS NULL")
+	s.mockDB.ExpectQuery(query).WithArgs(sqlmock.AnyArg()).WillReturnError(gorm.ErrRecordNotFound)
+	actual, err := s.repositoryImpl.CountByUserID(context.TODO(), int64(1))
+	s.Equal(int64(0), actual)
+	s.Equal(gorm.ErrRecordNotFound, err)
+}

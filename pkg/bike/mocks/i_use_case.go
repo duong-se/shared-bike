@@ -4,8 +4,8 @@ package mocks
 
 import (
 	context "context"
-
 	domain "shared-bike/domain"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -15,15 +15,15 @@ type IUseCase struct {
 }
 
 // GetAllBike provides a mock function with given fields: ctx
-func (_m *IUseCase) GetAllBike(ctx context.Context) ([]domain.GetAllBikeResponse, error) {
+func (_m *IUseCase) GetAllBike(ctx context.Context) ([]domain.BikeDTO, error) {
 	ret := _m.Called(ctx)
 
-	var r0 []domain.GetAllBikeResponse
-	if rf, ok := ret.Get(0).(func(context.Context) []domain.GetAllBikeResponse); ok {
+	var r0 []domain.BikeDTO
+	if rf, ok := ret.Get(0).(func(context.Context) []domain.BikeDTO); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]domain.GetAllBikeResponse)
+			r0 = ret.Get(0).([]domain.BikeDTO)
 		}
 	}
 
@@ -37,22 +37,20 @@ func (_m *IUseCase) GetAllBike(ctx context.Context) ([]domain.GetAllBikeResponse
 	return r0, r1
 }
 
-// Rent provides a mock function with given fields: ctx, payload
-func (_m *IUseCase) Rent(ctx context.Context, payload domain.RentOrReturnRequestPayload) (*domain.Bike, error) {
-	ret := _m.Called(ctx, payload)
+// Rent provides a mock function with given fields: ctx, body
+func (_m *IUseCase) Rent(ctx context.Context, body domain.RentOrReturnRequestPayload) (domain.BikeDTO, error) {
+	ret := _m.Called(ctx, body)
 
-	var r0 *domain.Bike
-	if rf, ok := ret.Get(0).(func(context.Context, domain.RentOrReturnRequestPayload) *domain.Bike); ok {
-		r0 = rf(ctx, payload)
+	var r0 domain.BikeDTO
+	if rf, ok := ret.Get(0).(func(context.Context, domain.RentOrReturnRequestPayload) domain.BikeDTO); ok {
+		r0 = rf(ctx, body)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.Bike)
-		}
+		r0 = ret.Get(0).(domain.BikeDTO)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, domain.RentOrReturnRequestPayload) error); ok {
-		r1 = rf(ctx, payload)
+		r1 = rf(ctx, body)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -60,22 +58,20 @@ func (_m *IUseCase) Rent(ctx context.Context, payload domain.RentOrReturnRequest
 	return r0, r1
 }
 
-// Return provides a mock function with given fields: ctx, payload
-func (_m *IUseCase) Return(ctx context.Context, payload domain.RentOrReturnRequestPayload) (*domain.Bike, error) {
-	ret := _m.Called(ctx, payload)
+// Return provides a mock function with given fields: ctx, body
+func (_m *IUseCase) Return(ctx context.Context, body domain.RentOrReturnRequestPayload) (domain.BikeDTO, error) {
+	ret := _m.Called(ctx, body)
 
-	var r0 *domain.Bike
-	if rf, ok := ret.Get(0).(func(context.Context, domain.RentOrReturnRequestPayload) *domain.Bike); ok {
-		r0 = rf(ctx, payload)
+	var r0 domain.BikeDTO
+	if rf, ok := ret.Get(0).(func(context.Context, domain.RentOrReturnRequestPayload) domain.BikeDTO); ok {
+		r0 = rf(ctx, body)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.Bike)
-		}
+		r0 = ret.Get(0).(domain.BikeDTO)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, domain.RentOrReturnRequestPayload) error); ok {
-		r1 = rf(ctx, payload)
+		r1 = rf(ctx, body)
 	} else {
 		r1 = ret.Error(1)
 	}

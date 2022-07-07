@@ -4,8 +4,8 @@ package mocks
 
 import (
 	context "context"
-
 	domain "shared-bike/domain"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -14,20 +14,20 @@ type IUseCase struct {
 	mock.Mock
 }
 
-// Login provides a mock function with given fields: ctx, payload
-func (_m *IUseCase) Login(ctx context.Context, payload domain.LoginPayload) (bool, error) {
-	ret := _m.Called(ctx, payload)
+// Login provides a mock function with given fields: ctx, body
+func (_m *IUseCase) Login(ctx context.Context, body domain.LoginBody) (domain.UserDTO, error) {
+	ret := _m.Called(ctx, body)
 
-	var r0 bool
-	if rf, ok := ret.Get(0).(func(context.Context, domain.LoginPayload) bool); ok {
-		r0 = rf(ctx, payload)
+	var r0 domain.UserDTO
+	if rf, ok := ret.Get(0).(func(context.Context, domain.LoginBody) domain.UserDTO); ok {
+		r0 = rf(ctx, body)
 	} else {
-		r0 = ret.Get(0).(bool)
+		r0 = ret.Get(0).(domain.UserDTO)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, domain.LoginPayload) error); ok {
-		r1 = rf(ctx, payload)
+	if rf, ok := ret.Get(1).(func(context.Context, domain.LoginBody) error); ok {
+		r1 = rf(ctx, body)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -35,18 +35,25 @@ func (_m *IUseCase) Login(ctx context.Context, payload domain.LoginPayload) (boo
 	return r0, r1
 }
 
-// Register provides a mock function with given fields: ctx, payload
-func (_m *IUseCase) Register(ctx context.Context, payload domain.RegisterPayload) error {
-	ret := _m.Called(ctx, payload)
+// Register provides a mock function with given fields: ctx, body
+func (_m *IUseCase) Register(ctx context.Context, body domain.RegisterBody) (domain.UserDTO, error) {
+	ret := _m.Called(ctx, body)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, domain.RegisterPayload) error); ok {
-		r0 = rf(ctx, payload)
+	var r0 domain.UserDTO
+	if rf, ok := ret.Get(0).(func(context.Context, domain.RegisterBody) domain.UserDTO); ok {
+		r0 = rf(ctx, body)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(domain.UserDTO)
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, domain.RegisterBody) error); ok {
+		r1 = rf(ctx, body)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 type mockConstructorTestingTNewIUseCase interface {

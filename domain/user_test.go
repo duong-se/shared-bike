@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -31,10 +32,26 @@ func TestUserDomainTestSuite(t *testing.T) {
 	suite.Run(t, new(UserDomainTestSuite))
 }
 
+func (s *UserDomainTestSuite) TestToDTO_Success() {
+	actual := s.user.ToDTO()
+	expected := UserDTO{
+		ID:       s.user.ID,
+		Username: s.user.Username,
+		Name:     s.user.Name,
+	}
+	s.Equal(expected, actual)
+}
+
 func (s *UserDomainTestSuite) TestHashPassword_Success() {
-	hashedPassword, err := s.user.HashPassword("testPassword")
+	hashedPassword, err := s.user.HashPassword("testPassword", bcrypt.DefaultCost)
 	s.Nil(err)
 	s.NotNil(hashedPassword)
+}
+
+func (s *UserDomainTestSuite) TestHashPassword_Failed() {
+	hashedPassword, err := s.user.HashPassword("testPassword", 10000)
+	s.NotNil(err)
+	s.Equal("", hashedPassword)
 }
 
 func (s *UserDomainTestSuite) TestCheckPasswordIsEqual_Success() {

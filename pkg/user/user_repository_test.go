@@ -80,6 +80,37 @@ func (s *UserRepositoryTestSuite) TestGetByUsername_Failed() {
 	s.Equal(gorm.ErrRecordNotFound, err)
 }
 
+func (s *UserRepositoryTestSuite) TestGetByID_Success() {
+	mockTime := time.Time{}
+	mockUser := domain.User{
+		ID:        1,
+		Username:  "testUsername",
+		Password:  "testPassword",
+		Name:      "testName",
+		CreatedAt: mockTime,
+		UpdatedAt: mockTime,
+		DeletedAt: gorm.DeletedAt{Valid: false},
+	}
+
+	rows := sqlmock.NewRows([]string{"id", "username", "password", "name", "created_at", "updated_at"}).
+		AddRow(mockUser.ID, mockUser.Username, mockUser.Password,
+			mockUser.Name, mockUser.CreatedAt, mockUser.UpdatedAt)
+
+	query := regexp.QuoteMeta("SELECT * FROM `user` WHERE id = ? AND `user`.`deleted_at` IS NULL ORDER BY `user`.`id` LIMIT 1")
+	s.mockDB.ExpectQuery(query).WithArgs(sqlmock.AnyArg()).WillReturnRows(rows)
+	actual, err := s.repositoryImpl.GetByID(context.TODO(), int64(1))
+	s.Equal(mockUser, *actual)
+	s.Nil(err)
+}
+
+func (s *UserRepositoryTestSuite) TestGetByID_Failed() {
+	query := regexp.QuoteMeta("SELECT * FROM `user` WHERE id = ? AND `user`.`deleted_at` IS NULL ORDER BY `user`.`id` LIMIT 1")
+	s.mockDB.ExpectQuery(query).WithArgs(sqlmock.AnyArg()).WillReturnError(gorm.ErrRecordNotFound)
+	actual, err := s.repositoryImpl.GetByID(context.TODO(), int64(1))
+	s.Nil(actual)
+	s.Equal(gorm.ErrRecordNotFound, err)
+}
+
 func (s *UserRepositoryTestSuite) TestGetListByIDs_Success() {
 	mockTime := time.Time{}
 	mockUsers := []domain.User{

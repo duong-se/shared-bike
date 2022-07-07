@@ -8,12 +8,13 @@ import (
 var (
 	ErrInternalServerError = errors.New("internal server error")
 	ErrUnauthorizeError    = errors.New("unauthorized")
-	ErrBikeNotFound        = errors.New("your request bike not found")
+	ErrBikeNotFound        = errors.New("bike not found")
 	ErrBikeRented          = errors.New("cannot rent because bike is rented")
-	ErrUserHaveBikeAlready = errors.New("cannot rent because you have already rented a bike")
+	ErrUserHasBikeAlready  = errors.New("cannot rent because you have already rented a bike")
 	ErrBikeAvailable       = errors.New("cannot return because bike is available")
 	ErrBikeNotYours        = errors.New("cannot return because bike is not yours")
-	ErrUserNotFound        = errors.New("username or password is wrong")
+	ErrUserLoginNotFound   = errors.New("username or password is wrong")
+	ErrUserNotExisted      = errors.New("user not exists or inactive")
 )
 
 func GetStatusCode(err error) int {
@@ -30,11 +31,13 @@ func GetStatusCode(err error) int {
 		return http.StatusNotFound
 	case ErrBikeRented:
 		return http.StatusBadRequest
-	case ErrUserHaveBikeAlready:
+	case ErrUserHasBikeAlready:
 		return http.StatusBadRequest
 	case ErrBikeAvailable:
 		return http.StatusBadRequest
-	case ErrUserNotFound:
+	case ErrUserNotExisted:
+		return http.StatusBadRequest
+	case ErrUserLoginNotFound:
 		return http.StatusNotFound
 	default:
 		return http.StatusInternalServerError

@@ -25,25 +25,25 @@ func NewHandler(usecase IUseCase) *handlerImpl {
 
 // Login godoc
 // @Summary      Login
-// @Description  Login by username and password
+// @Description  API for logining
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Param    		 request  body      domain.LoginPayload  true  "Login payload"
+// @Param    		 request  body      domain.LoginBody  true  "Login body"
 // @Success      204
-// @Failure      400  {string}  string 	"invalid payload"
+// @Failure      400  {string}  string 	"invalid body"
 // @Failure      404  {string}  string 	"username or password is wrong"
 // @Failure      500  {string}  string 	"internal server error"
 // @Router       /users/login [post]
 func (h *handlerImpl) Login(c echo.Context) error {
 	ctx := c.Request().Context()
-	payload := domain.LoginPayload{}
-	if err := c.Bind(&payload); err != nil {
-		c.Logger().Error("[UserHandler.Login] invalid payload", err)
-		return c.JSON(http.StatusBadRequest, "invalid payload")
+	body := domain.LoginBody{}
+	if err := c.Bind(&body); err != nil {
+		c.Logger().Error("[UserHandler.Login] invalid body", err)
+		return c.JSON(http.StatusBadRequest, "invalid body")
 	}
 	c.Logger().Info("[UserHandler.Login] logging")
-	user, err := h.usecase.Login(ctx, payload)
+	user, err := h.usecase.Login(ctx, body)
 	if err != nil {
 		c.Logger().Error("[UserHandler.Login] login failed", err)
 		return c.JSON(apperrors.GetStatusCode(err), err.Error())
@@ -53,7 +53,7 @@ func (h *handlerImpl) Login(c echo.Context) error {
 	return c.JSON(http.StatusNoContent, nil)
 }
 
-func (h *handlerImpl) setSession(user domain.User, c echo.Context) error {
+func (h *handlerImpl) setSession(user domain.UserDTO, c echo.Context) error {
 	sess, err := session.Get("session", c)
 	if err != nil {
 		return err
@@ -71,25 +71,25 @@ func (h *handlerImpl) setSession(user domain.User, c echo.Context) error {
 }
 
 // Register godoc
-// @Summary      Register
-// @Description  Register by username and password
+// @Summary      Register new user
+// @Description  API for registering new user
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Param    		 request  body      domain.RegisterPayload  true  "Register payload"
+// @Param    		 request  body      domain.RegisterBody  true  "Register body"
 // @Success      204
-// @Failure      400  {string}  string 	"invalid payload"
+// @Failure      400  {string}  string 	"invalid body"
 // @Failure      500  {string}  string 	"internal server error"
 // @Router       /users/register [post]
 func (h *handlerImpl) Register(c echo.Context) error {
 	c.Logger().Info("[UserHandler.Register] register is starting")
 	ctx := c.Request().Context()
-	payload := domain.RegisterPayload{}
-	if err := c.Bind(&payload); err != nil {
-		c.Logger().Error("[UserHandler.Register] invalid payload", err)
-		return c.JSON(http.StatusBadRequest, "invalid payload")
+	body := domain.RegisterBody{}
+	if err := c.Bind(&body); err != nil {
+		c.Logger().Error("[UserHandler.Register] invalid body", err)
+		return c.JSON(http.StatusBadRequest, "invalid body")
 	}
-	user, err := h.usecase.Register(ctx, payload)
+	user, err := h.usecase.Register(ctx, body)
 	if err != nil {
 		c.Logger().Error("[UserHandler.Register] register failed", err)
 		return c.JSON(apperrors.GetStatusCode(err), err.Error())

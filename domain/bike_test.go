@@ -31,6 +31,18 @@ func (s *BikeDomainTestSuite) SetupTest() {
 	s.bike = &bike
 }
 
+func (s *BikeDomainTestSuite) TestToDTO_Success() {
+	actual := s.bike.ToDTO()
+	expected := BikeDTO{
+		ID:     s.bike.ID,
+		Lat:    s.bike.Lat.String(),
+		Long:   s.bike.Long.String(),
+		Status: s.bike.Status,
+		UserID: s.bike.UserID,
+	}
+	s.Equal(expected, actual)
+}
+
 func TestBikeDomainTestSuite(t *testing.T) {
 	suite.Run(t, new(BikeDomainTestSuite))
 }

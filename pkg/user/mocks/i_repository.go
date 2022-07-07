@@ -4,8 +4,8 @@ package mocks
 
 import (
 	context "context"
-
 	domain "shared-bike/domain"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -14,13 +14,13 @@ type IRepository struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: ctx, payload
-func (_m *IRepository) Create(ctx context.Context, payload *domain.User) error {
-	ret := _m.Called(ctx, payload)
+// Create provides a mock function with given fields: ctx, body
+func (_m *IRepository) Create(ctx context.Context, body *domain.User) error {
+	ret := _m.Called(ctx, body)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *domain.User) error); ok {
-		r0 = rf(ctx, payload)
+		r0 = rf(ctx, body)
 	} else {
 		r0 = ret.Error(0)
 	}

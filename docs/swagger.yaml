@@ -1,4 +1,50 @@
 basePath: /api/v1
+definitions:
+  domain.BikeDTO:
+    properties:
+      id:
+        example: 1
+        type: integer
+      lat:
+        example: "50.119504"
+        type: string
+      long:
+        example: "8.638137"
+        type: string
+      nameOfRenter:
+        example: Bob
+        type: string
+      status:
+        example: rented
+        type: string
+      userId:
+        example: 1
+        type: integer
+      usernameOfRenter:
+        example: bob
+        type: string
+    type: object
+  domain.LoginBody:
+    properties:
+      password:
+        example: mypassword
+        type: string
+      username:
+        example: myusername
+        type: string
+    type: object
+  domain.RegisterBody:
+    properties:
+      name:
+        example: myname
+        type: string
+      password:
+        example: mypassword
+        type: string
+      username:
+        example: myusername
+        type: string
+    type: object
 info:
   contact:
     email: duongpham@duck.com
@@ -8,31 +54,150 @@ info:
   title: Shared Bike API
   version: "1.0"
 paths:
-  /users/login:
-    post:
+  /bikes:
+    get:
       consumes:
       - application/json
-      description: get string by ID
+      description: API for getting all bikes
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Success
+          schema:
+            items:
+              items:
+                $ref: '#/definitions/domain.BikeDTO'
+              type: array
+            type: array
+        "500":
+          description: internal server error
           schema:
             type: string
+      summary: Get all bikes
+      tags:
+      - bikes
+  /bikes/{id}/rent:
+    patch:
+      consumes:
+      - application/json
+      description: API for renting a bike
+      parameters:
+      - description: bike id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/domain.BikeDTO'
         "400":
-          description: invalid payload
-          schema:
-            type: string
-        "404":
-          description: Not Found
+          description: invalid bike id | cannot rent because you have already rented
+            a bike | user not exists or inactive | bike not found | cannot rent because
+            bike is rented
           schema:
             type: string
         "500":
-          description: Internal Server Error
+          description: internal server error
           schema:
             type: string
-      summary: Show an account
+      summary: Rent a bike
+      tags:
+      - bikes
+  /bikes/{id}/return:
+    patch:
+      consumes:
+      - application/json
+      description: API for returning a bike
+      parameters:
+      - description: bike id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            items:
+              $ref: '#/definitions/domain.BikeDTO'
+            type: array
+        "400":
+          description: invalid bike id | bike not found | cannot return because bike
+            is available | cannot return because bike is not yours
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Return a bike
+      tags:
+      - bikes
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: API for logining
+      parameters:
+      - description: Login body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.LoginBody'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: ""
+        "400":
+          description: invalid body
+          schema:
+            type: string
+        "404":
+          description: username or password is wrong
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Login
+      tags:
+      - users
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      description: API for registering new user
+      parameters:
+      - description: Register body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RegisterBody'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: ""
+        "400":
+          description: invalid body
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Register new user
       tags:
       - users
 securityDefinitions:

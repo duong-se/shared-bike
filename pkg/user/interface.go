@@ -8,7 +8,7 @@ import (
 
 type IRepository interface {
 	GetByUsername(ctx context.Context, username string) (*domain.User, error)
-	Create(ctx context.Context, payload *domain.User) error
+	Create(ctx context.Context, body *domain.User) error
 }
 
 type ILogger interface {
@@ -18,8 +18,8 @@ type ILogger interface {
 	Error(i ...interface{})
 }
 type IUseCase interface {
-	Login(ctx context.Context, payload domain.LoginPayload) (domain.User, error)
-	Register(ctx context.Context, payload domain.RegisterPayload) (domain.User, error)
+	Login(ctx context.Context, body domain.LoginBody) (domain.UserDTO, error)
+	Register(ctx context.Context, body domain.RegisterBody) (domain.UserDTO, error)
 }
 
 //go:generate mockery --name IRepository --output mocks --case underscore

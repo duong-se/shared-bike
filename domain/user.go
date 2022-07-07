@@ -8,13 +8,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type RegisterPayload struct {
+type RegisterBody struct {
 	Username string `json:"username" example:"myusername"`
 	Password string `json:"password" example:"mypassword"`
 	Name     string `json:"name" example:"myname"`
 }
 
-type LoginPayload struct {
+type LoginBody struct {
 	Username string `json:"username" example:"myusername"`
 	Password string `json:"password" example:"mypassword"`
 }
@@ -29,6 +29,14 @@ type User struct {
 	DeletedAt gorm.DeletedAt `json:"deletedAt"`
 }
 
+func (u *User) ToDTO() UserDTO {
+	return UserDTO{
+		ID:       u.ID,
+		Username: u.Username,
+		Name:     u.Name,
+	}
+}
+
 func (u *User) ValidatePassword(plainPassword string) bool {
 	password := []byte(plainPassword)
 	hashedPassword := []byte(u.Password)
@@ -36,8 +44,8 @@ func (u *User) ValidatePassword(plainPassword string) bool {
 	return err == nil
 }
 
-func (u *User) HashPassword(plainPassword string) (string, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
+func (u *User) HashPassword(plainPassword string, cost int) (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(plainPassword), cost)
 	if err != nil {
 		return "", fmt.Errorf("bycrpt password: %w", err)
 	}
@@ -46,4 +54,10 @@ func (u *User) HashPassword(plainPassword string) (string, error) {
 
 func (User) TableName() string {
 	return "user"
+}
+
+type UserDTO struct {
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
+	Name     string `json:"name"`
 }

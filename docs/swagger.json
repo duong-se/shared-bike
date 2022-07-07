@@ -12,9 +12,135 @@
     },
     "basePath": "/api/v1",
     "paths": {
+        "/bikes": {
+            "get": {
+                "description": "API for getting all bikes",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bikes"
+                ],
+                "summary": "Get all bikes",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/domain.BikeDTO"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/bikes/{id}/rent": {
+            "patch": {
+                "description": "API for renting a bike",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bikes"
+                ],
+                "summary": "Rent a bike",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "bike id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/domain.BikeDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid bike id | cannot rent because you have already rented a bike | user not exists or inactive | bike not found | cannot rent because bike is rented",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/bikes/{id}/return": {
+            "patch": {
+                "description": "API for returning a bike",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bikes"
+                ],
+                "summary": "Return a bike",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "bike id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.BikeDTO"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "invalid bike id | bike not found | cannot return because bike is available | cannot return because bike is not yours",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/users/login": {
             "post": {
-                "description": "get string by ID",
+                "description": "API for logining",
                 "consumes": [
                     "application/json"
                 ],
@@ -24,32 +150,148 @@
                 "tags": [
                     "users"
                 ],
-                "summary": "Show an account",
-                "responses": {
-                    "200": {
-                        "description": "OK",
+                "summary": "Login",
+                "parameters": [
+                    {
+                        "description": "Login body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/domain.LoginBody"
                         }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
                     },
                     "400": {
-                        "description": "invalid payload",
+                        "description": "invalid body",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "username or password is wrong",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "internal server error",
                         "schema": {
                             "type": "string"
                         }
                     }
+                }
+            }
+        },
+        "/users/register": {
+            "post": {
+                "description": "API for registering new user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Register new user",
+                "parameters": [
+                    {
+                        "description": "Register body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.RegisterBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "invalid body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "domain.BikeDTO": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "lat": {
+                    "type": "string",
+                    "example": "50.119504"
+                },
+                "long": {
+                    "type": "string",
+                    "example": "8.638137"
+                },
+                "nameOfRenter": {
+                    "type": "string",
+                    "example": "Bob"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "rented"
+                },
+                "userId": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "usernameOfRenter": {
+                    "type": "string",
+                    "example": "bob"
+                }
+            }
+        },
+        "domain.LoginBody": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "example": "mypassword"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "myusername"
+                }
+            }
+        },
+        "domain.RegisterBody": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "myname"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "mypassword"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "myusername"
                 }
             }
         }

@@ -18,6 +18,15 @@ func NewRepository(db *gorm.DB) *repositoryImpl {
 	}
 }
 
+func (r *repositoryImpl) GetByID(ctx context.Context, id int64) (*domain.User, error) {
+	user := domain.User{}
+	err := r.db.Where("id = ?", id).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 func (r *repositoryImpl) GetByUsername(ctx context.Context, username string) (*domain.User, error) {
 	user := domain.User{}
 	err := r.db.Where("username = ?", username).First(&user).Error
@@ -36,8 +45,8 @@ func (r *repositoryImpl) GetListByIDs(ctx context.Context, IDs []int64) (*[]doma
 	return &user, nil
 }
 
-func (r *repositoryImpl) Create(ctx context.Context, payload *domain.User) error {
-	err := r.db.Create(payload).Error
+func (r *repositoryImpl) Create(ctx context.Context, body *domain.User) error {
+	err := r.db.Create(body).Error
 	if err != nil {
 		return err
 	}

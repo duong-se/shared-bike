@@ -7,6 +7,7 @@ import (
 	"shared-bike/apperrors"
 	"shared-bike/domain"
 
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -22,42 +23,38 @@ func NewUseCase(logger ILogger, repository IRepository) *useCaseImpl {
 	}
 }
 
-func (u *useCaseImpl) Login(ctx context.Context, payload domain.LoginPayload) (domain.User, error) {
+func (u *useCaseImpl) Login(ctx context.Context, body domain.LoginBody) (domain.UserDTO, error) {
 	u.logger.Info("[UserUseCase.Login] starting")
-	user, err := u.repository.GetByUsername(ctx, payload.Username)
+	user, err := u.repository.GetByUsername(ctx, body.Username)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		u.logger.Info("[UserUseCase.Login] user not found")
-		return domain.User{}, apperrors.ErrUserNotFound
+		return domain.UserDTO{}, apperrors.ErrUserLoginNotFound
 	}
 	if err != nil {
 		u.logger.Error("[UserUseCase.Login] fetch user by username failed", err)
-		return domain.User{}, apperrors.ErrInternalServerError
+		return domain.UserDTO{}, apperrors.ErrInternalServerError
 	}
-	if !user.ValidatePassword(payload.Password) {
+	if !user.ValidatePassword(body.Password) {
 		u.logger.Infof("[UserUseCase.Login] user %d login with password does not match", user.ID)
-		return domain.User{}, apperrors.ErrUserNotFound
+		return domain.UserDTO{}, apperrors.ErrUserLoginNotFound
 	}
 	u.logger.Infof("[UserUseCase.Login] user %d login success", user.ID)
-	return *user, nil
+	return user.ToDTO(), nil
 }
 
-func (u *useCaseImpl) Register(ctx context.Context, payload domain.RegisterPayload) (domain.User, error) {
+func (u *useCaseImpl) Register(ctx context.Context, body domain.RegisterBody) (domain.UserDTO, error) {
 	u.logger.Info("[UserUseCase.Register] starting")
 	newUser := domain.User{
-		Username: payload.Username,
-		Name:     payload.Name,
+		Username: body.Username,
+		Name:     body.Name,
 	}
-	hashedPassword, err := newUser.HashPassword(payload.Password)
-	if err != nil {
-		u.logger.Error("[UserUseCase.Register] hash password failed", err)
-		return domain.User{}, apperrors.ErrInternalServerError
-	}
+	hashedPassword, _ := newUser.HashPassword(body.Password, bcrypt.DefaultCost)
 	newUser.Password = hashedPassword
-	err = u.repository.Create(ctx, &newUser)
+	err := u.repository.Create(ctx, &newUser)
 	if err != nil {
 		u.logger.Error("[UserUseCase.Register] register failed", err)
-		return domain.User{}, apperrors.ErrInternalServerError
+		return domain.UserDTO{}, apperrors.ErrInternalServerError
 	}
 	u.logger.Infof("[UserUseCase.Register] user %d register success", newUser.ID)
-	return newUser, nil
+	return newUser.ToDTO(), nil
 }
