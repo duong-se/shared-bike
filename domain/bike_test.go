@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"database/sql"
 	"testing"
 	"time"
 
@@ -18,17 +19,25 @@ func (s *BikeDomainTestSuite) SetupTest() {
 	mockTime := time.Time{}
 	lat := decimal.NewFromFloat(50.119504)
 	long := decimal.NewFromFloat(8.638137)
+	mockNilUserID := sql.NullInt64{
+		Valid: false,
+		Int64: 0,
+	}
 	bike := Bike{
 		ID:        1,
 		Lat:       &lat,
 		Long:      &long,
 		Status:    BikeStatusAvailable,
-		UserID:    nil,
+		UserID:    mockNilUserID,
 		CreatedAt: mockTime,
 		UpdatedAt: mockTime,
 		DeletedAt: gorm.DeletedAt{Valid: false},
 	}
 	s.bike = &bike
+}
+
+func TestBikeDomainTestSuite(t *testing.T) {
+	suite.Run(t, new(BikeDomainTestSuite))
 }
 
 func (s *BikeDomainTestSuite) TestToDTO_Success() {
@@ -38,13 +47,9 @@ func (s *BikeDomainTestSuite) TestToDTO_Success() {
 		Lat:    s.bike.Lat.String(),
 		Long:   s.bike.Long.String(),
 		Status: s.bike.Status,
-		UserID: s.bike.UserID,
+		UserID: 0,
 	}
 	s.Equal(expected, actual)
-}
-
-func TestBikeDomainTestSuite(t *testing.T) {
-	suite.Run(t, new(BikeDomainTestSuite))
 }
 
 func (s *BikeDomainTestSuite) TestTableName_Success() {
@@ -62,9 +67,29 @@ func (s *BikeDomainTestSuite) TestIsAvailable_Success() {
 func (s *BikeDomainTestSuite) TestIsRented_Success() {
 	s.bike.Status = BikeStatusRented
 	userID := int64(1)
-	s.bike.UserID = &userID
+	s.bike.UserID = sql.NullInt64{
+		Valid: true,
+		Int64: userID,
+	}
 	isRent := s.bike.IsRented()
 	isAvailable := s.bike.IsAvailable()
 	s.True(isRent)
 	s.False(isAvailable)
+}
+
+func (s *BikeDomainTestSuite) TestToDTO_SuccessWithUserID() {
+	newBike := s.bike
+	newBike.UserID = sql.NullInt64{
+		Valid: true,
+		Int64: 1,
+	}
+	actual := newBike.ToDTO()
+	expected := BikeDTO{
+		ID:     s.bike.ID,
+		Lat:    s.bike.Lat.String(),
+		Long:   s.bike.Long.String(),
+		Status: s.bike.Status,
+		UserID: 1,
+	}
+	s.Equal(expected, actual)
 }

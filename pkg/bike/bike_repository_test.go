@@ -2,6 +2,7 @@ package bike
 
 import (
 	"context"
+	"database/sql"
 	"regexp"
 	"testing"
 	"time"
@@ -51,7 +52,14 @@ func TestBikeRepositoryTestSuite(t *testing.T) {
 }
 
 func (s *BikeRepositoryTestSuite) TestGetList_Success() {
-	userID := int64(1)
+	mockUserID := sql.NullInt64{
+		Valid: true,
+		Int64: 1,
+	}
+	mockNilUserID := sql.NullInt64{
+		Valid: false,
+		Int64: 0,
+	}
 	mockTime := time.Time{}
 	lat := decimal.NewFromFloat(50.119504)
 	long := decimal.NewFromFloat(8.638137)
@@ -61,37 +69,49 @@ func (s *BikeRepositoryTestSuite) TestGetList_Success() {
 			Lat:       &lat,
 			Long:      &long,
 			Status:    domain.BikeStatusAvailable,
-			UserID:    nil,
+			UserID:    mockNilUserID,
 			CreatedAt: mockTime,
 			UpdatedAt: mockTime,
+			DeletedAt: gorm.DeletedAt{
+				Valid: false,
+				Time:  time.Time{},
+			},
 		},
 		{
 			ID:        1,
 			Lat:       &lat,
 			Long:      &long,
 			Status:    domain.BikeStatusRented,
-			UserID:    &userID,
+			UserID:    mockUserID,
 			CreatedAt: mockTime,
 			UpdatedAt: mockTime,
+			DeletedAt: gorm.DeletedAt{
+				Valid: false,
+				Time:  time.Time{},
+			},
 		},
 		{
 			ID:        1,
 			Lat:       &lat,
 			Long:      &long,
 			Status:    domain.BikeStatusAvailable,
-			UserID:    nil,
+			UserID:    mockNilUserID,
 			CreatedAt: mockTime,
 			UpdatedAt: mockTime,
+			DeletedAt: gorm.DeletedAt{
+				Valid: false,
+				Time:  time.Time{},
+			},
 		},
 	}
 
-	rows := sqlmock.NewRows([]string{"id", "lat", "long", "status", "user_id", "created_at", "updated_at"}).
+	rows := sqlmock.NewRows([]string{"id", "lat", "long", "status", "user_id", "created_at", "updated_at", "deleted_at"}).
 		AddRow(mockBikes[0].ID, mockBikes[0].Lat, mockBikes[0].Long,
-			mockBikes[0].Status, mockBikes[0].UserID, mockTime, mockTime).
+			mockBikes[0].Status, nil, mockBikes[0].CreatedAt, mockBikes[0].UpdatedAt, nil).
 		AddRow(mockBikes[1].ID, mockBikes[1].Lat, mockBikes[1].Long,
-			mockBikes[1].Status, mockBikes[1].UserID, mockTime, mockTime).
+			mockBikes[1].Status, 1, mockBikes[1].CreatedAt, mockBikes[1].UpdatedAt, nil).
 		AddRow(mockBikes[2].ID, mockBikes[2].Lat, mockBikes[2].Long,
-			mockBikes[2].Status, mockBikes[2].UserID, mockTime, mockTime)
+			mockBikes[2].Status, nil, mockBikes[2].CreatedAt, mockBikes[2].UpdatedAt, nil)
 
 	query := regexp.QuoteMeta("SELECT * FROM `bike`")
 
@@ -114,19 +134,27 @@ func (s *BikeRepositoryTestSuite) TestGetByID_Success() {
 	mockTime := time.Time{}
 	lat := decimal.NewFromFloat(50.119504)
 	long := decimal.NewFromFloat(8.638137)
+	mockNilUserID := sql.NullInt64{
+		Valid: false,
+		Int64: 0,
+	}
 	mockBike := domain.Bike{
 		ID:        1,
 		Lat:       &lat,
 		Long:      &long,
-		UserID:    nil,
+		UserID:    mockNilUserID,
 		Status:    domain.BikeStatusAvailable,
 		CreatedAt: mockTime,
 		UpdatedAt: mockTime,
+		DeletedAt: gorm.DeletedAt{
+			Valid: false,
+			Time:  time.Time{},
+		},
 	}
 	query := regexp.QuoteMeta("SELECT * FROM `bike` WHERE id = ?")
-	row := sqlmock.NewRows([]string{"id", "lat", "long", "status", "user_id", "created_at", "updated_at"}).
+	row := sqlmock.NewRows([]string{"id", "lat", "long", "status", "user_id", "created_at", "updated_at", "deleted_at"}).
 		AddRow(mockBike.ID, mockBike.Lat, mockBike.Long,
-			mockBike.Status, mockBike.UserID, mockTime, mockTime)
+			mockBike.Status, nil, mockBike.CreatedAt, mockBike.UpdatedAt, nil)
 	s.mockDB.ExpectQuery(query).WithArgs(sqlmock.AnyArg()).WillReturnRows(row)
 	actual, err := s.repositoryImpl.GetByID(context.TODO(), int64(1))
 	s.Equal(mockBike, *actual)
@@ -142,30 +170,36 @@ func (s *BikeRepositoryTestSuite) TestGetByID_Failed() {
 }
 
 func (s *BikeRepositoryTestSuite) TestUpdate_Success() {
-	userID := int64(1)
+	mockUserID := sql.NullInt64{
+		Valid: true,
+		Int64: 1,
+	}
 	updatedVariables := domain.Bike{
 		Status: domain.BikeStatusRented,
-		UserID: &userID,
+		UserID: mockUserID,
 	}
 	query := regexp.QuoteMeta("UPDATE `bike` SET `status`=?,`user_id`=?,`updated_at`=? WHERE id = ?")
 	s.mockDB.ExpectBegin()
 	s.mockDB.ExpectExec(query).WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnResult(sqlmock.NewResult(1, 1))
 	s.mockDB.ExpectCommit()
-	err := s.repositoryImpl.Update(context.TODO(), &updatedVariables)
+	err := s.repositoryImpl.UpdateStatusAndUserID(context.TODO(), &updatedVariables)
 	s.Nil(err)
 }
 
 func (s *BikeRepositoryTestSuite) TestUpdate_Failed() {
-	userID := int64(1)
+	mockUserID := sql.NullInt64{
+		Valid: true,
+		Int64: 1,
+	}
 	updatedVariables := domain.Bike{
 		Status: domain.BikeStatusRented,
-		UserID: &userID,
+		UserID: mockUserID,
 	}
 	query := regexp.QuoteMeta("UPDATE `bike` SET `status`=?,`user_id`=?,`updated_at`=? WHERE id = ?")
 	s.mockDB.ExpectBegin()
 	s.mockDB.ExpectExec(query).WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnError(gorm.ErrRecordNotFound)
 	s.mockDB.ExpectRollback()
-	err := s.repositoryImpl.Update(context.TODO(), &updatedVariables)
+	err := s.repositoryImpl.UpdateStatusAndUserID(context.TODO(), &updatedVariables)
 	s.Equal(gorm.ErrRecordNotFound, err)
 }
 

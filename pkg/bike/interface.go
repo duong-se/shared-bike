@@ -9,7 +9,7 @@ import (
 type IRepository interface {
 	GetList(ctx context.Context) (*[]domain.Bike, error)
 	GetByID(ctx context.Context, id int64) (*domain.Bike, error)
-	Update(ctx context.Context, body *domain.Bike) error
+	UpdateStatusAndUserID(ctx context.Context, body *domain.Bike) error
 	CountByUserID(ctx context.Context, id int64) (int64, error)
 }
 

@@ -12,6 +12,8 @@ import (
 	"shared-bike/middleware"
 	"shared-bike/pkg/bike/mocks"
 
+	"github.com/gorilla/sessions"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/suite"
 	"gorm.io/gorm"
@@ -27,7 +29,9 @@ type BikeHandlerTestSuite struct {
 func (s *BikeHandlerTestSuite) SetupTest() {
 	mockUseCase := &mocks.IUseCase{}
 	s.mockUseCase = mockUseCase
-	s.echo = echo.New()
+	e := echo.New()
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte("mockSecret"))))
+	s.echo = e
 	handler := NewHandler(mockUseCase)
 	s.handlerImpl = handler
 }
@@ -58,36 +62,36 @@ func (s *BikeHandlerTestSuite) TestGetAll_Success() {
 				Lat:              "50.119504",
 				Long:             "8.638137",
 				Status:           domain.BikeStatusAvailable,
-				UserID:           nil,
-				NameOfRenter:     nil,
-				UsernameOfRenter: nil,
+				UserID:           0,
+				NameOfRenter:     "",
+				UsernameOfRenter: "",
 			},
 			{
 				ID:               1,
 				Lat:              "50.119229",
 				Long:             "8.640020",
 				Status:           domain.BikeStatusRented,
-				UserID:           &mockUserID,
-				NameOfRenter:     &mockUserResult[0].Name,
-				UsernameOfRenter: &mockUserResult[0].Username,
+				UserID:           mockUserID,
+				NameOfRenter:     mockUserResult[0].Name,
+				UsernameOfRenter: mockUserResult[0].Username,
 			},
 			{
 				ID:               1,
 				Lat:              "50.120452",
 				Long:             "8.650507",
 				Status:           domain.BikeStatusAvailable,
-				UserID:           nil,
-				NameOfRenter:     nil,
-				UsernameOfRenter: nil,
+				UserID:           0,
+				NameOfRenter:     "",
+				UsernameOfRenter: "",
 			},
 		}
 	)
 	s.mockUseCase.On("GetAllBike", mockContext).Return(mockResult, nil)
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequest(http.MethodGet, "/bikes", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	respBody := `[{"id":1,"lat":"50.119504","long":"8.638137","status":"available","userId":null,"nameOfRenter":null,"usernameOfRenter":null},{"id":1,"lat":"50.119229","long":"8.640020","status":"rented","userId":1,"nameOfRenter":"testName","usernameOfRenter":"testUsername"},{"id":1,"lat":"50.120452","long":"8.650507","status":"available","userId":null,"nameOfRenter":null,"usernameOfRenter":null}]
+	respBody := `[{"id":1,"lat":"50.119504","long":"8.638137","status":"available","userId":0,"nameOfRenter":"","usernameOfRenter":""},{"id":1,"lat":"50.119229","long":"8.640020","status":"rented","userId":1,"nameOfRenter":"testName","usernameOfRenter":"testUsername"},{"id":1,"lat":"50.120452","long":"8.650507","status":"available","userId":0,"nameOfRenter":"","usernameOfRenter":""}]
 `
 	c.SetPath("/bikes")
 	s.NoError(s.handlerImpl.GetAllBike(c))
@@ -100,7 +104,7 @@ func (s *BikeHandlerTestSuite) TestGetAll_Failed() {
 		mockContext = context.TODO()
 	)
 	s.mockUseCase.On("GetAllBike", mockContext).Return(nil, apperrors.ErrInternalServerError)
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequest(http.MethodGet, "/bikes", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
@@ -123,9 +127,9 @@ func (s *BikeHandlerTestSuite) TestRent_Success() {
 			Lat:              "50.119504",
 			Long:             "8.638137",
 			Status:           domain.BikeStatusRented,
-			UserID:           &userID,
-			NameOfRenter:     &name,
-			UsernameOfRenter: &username,
+			UserID:           userID,
+			NameOfRenter:     name,
+			UsernameOfRenter: username,
 		}
 		mockInput = domain.RentOrReturnRequestPayload{
 			UserID: 1,
@@ -133,7 +137,7 @@ func (s *BikeHandlerTestSuite) TestRent_Success() {
 		}
 	)
 	s.mockUseCase.On("Rent", mockContext, mockInput).Return(mockResult, nil)
-	req := httptest.NewRequest(http.MethodPatch, "/1/rent", nil)
+	req := httptest.NewRequest(http.MethodPatch, "/bikes/1/rent", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
@@ -158,7 +162,7 @@ func (s *BikeHandlerTestSuite) TestRent_FailedUseCase() {
 		}
 	)
 	s.mockUseCase.On("Rent", mockContext, mockInput).Return(mockResult, apperrors.ErrBikeNotFound)
-	req := httptest.NewRequest(http.MethodPatch, "/1/rent", nil)
+	req := httptest.NewRequest(http.MethodPatch, "/bikes/1/rent", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
@@ -174,7 +178,7 @@ func (s *BikeHandlerTestSuite) TestRent_FailedUseCase() {
 }
 
 func (s *BikeHandlerTestSuite) TestRent_FailedParams() {
-	req := httptest.NewRequest(http.MethodPatch, "/1/rent", nil)
+	req := httptest.NewRequest(http.MethodPatch, "/bikes/1/rent", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
@@ -197,9 +201,9 @@ func (s *BikeHandlerTestSuite) TestReturn_Success() {
 			Lat:              "50.119504",
 			Long:             "8.638137",
 			Status:           domain.BikeStatusAvailable,
-			UserID:           nil,
-			NameOfRenter:     nil,
-			UsernameOfRenter: nil,
+			UserID:           0,
+			NameOfRenter:     "",
+			UsernameOfRenter: "",
 		}
 		mockInput = domain.RentOrReturnRequestPayload{
 			UserID: 1,
@@ -207,12 +211,12 @@ func (s *BikeHandlerTestSuite) TestReturn_Success() {
 		}
 	)
 	s.mockUseCase.On("Return", mockContext, mockInput).Return(mockResult, nil)
-	req := httptest.NewRequest(http.MethodPatch, "/1/return", nil)
+	req := httptest.NewRequest(http.MethodPatch, "/bikes/1/return", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
 	c.Set(middleware.UserIDKey, int64(1))
-	respBody := `{"id":1,"lat":"50.119504","long":"8.638137","status":"available","userId":null,"nameOfRenter":null,"usernameOfRenter":null}
+	respBody := `{"id":1,"lat":"50.119504","long":"8.638137","status":"available","userId":0,"nameOfRenter":"","usernameOfRenter":""}
 `
 	c.SetPath("/bikes/:id/return")
 	c.SetParamNames("id")
@@ -232,7 +236,7 @@ func (s *BikeHandlerTestSuite) TestReturn_FailedUseCase() {
 		}
 	)
 	s.mockUseCase.On("Return", mockContext, mockInput).Return(mockResult, apperrors.ErrBikeNotFound)
-	req := httptest.NewRequest(http.MethodPatch, "/1/return", nil)
+	req := httptest.NewRequest(http.MethodPatch, "/bikes/1/return", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
@@ -248,7 +252,7 @@ func (s *BikeHandlerTestSuite) TestReturn_FailedUseCase() {
 }
 
 func (s *BikeHandlerTestSuite) TestReturn_FailedParams() {
-	req := httptest.NewRequest(http.MethodPatch, "/1/return", nil)
+	req := httptest.NewRequest(http.MethodPatch, "/bikes/1/return", nil)
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)

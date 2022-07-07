@@ -2,6 +2,7 @@ package bike
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 
@@ -44,30 +45,37 @@ func TestBikeUseCaseTestSuite(t *testing.T) {
 func (s *BikeUseCaseTestSuite) TestGetAllBike_Success() {
 	var (
 		mockContext = context.TODO()
-		mockUserID  = int64(1)
-		lat         = decimal.NewFromFloat(50.119504)
-		long        = decimal.NewFromFloat(8.638137)
-		mockBike    = []domain.Bike{
+		mockUserID  = sql.NullInt64{
+			Valid: true,
+			Int64: 1,
+		}
+		mockNilUserID = sql.NullInt64{
+			Valid: false,
+			Int64: 0,
+		}
+		lat      = decimal.NewFromFloat(50.119504)
+		long     = decimal.NewFromFloat(8.638137)
+		mockBike = []domain.Bike{
 			{
 				ID:     1,
 				Lat:    &lat,
 				Long:   &long,
 				Status: domain.BikeStatusAvailable,
-				UserID: nil,
+				UserID: mockNilUserID,
 			},
 			{
 				ID:     1,
 				Lat:    &lat,
 				Long:   &long,
 				Status: domain.BikeStatusRented,
-				UserID: &mockUserID,
+				UserID: mockUserID,
 			},
 			{
 				ID:     1,
 				Lat:    &lat,
 				Long:   &long,
 				Status: domain.BikeStatusAvailable,
-				UserID: nil,
+				UserID: mockNilUserID,
 			},
 		}
 		mockTime       = time.Time{}
@@ -88,27 +96,27 @@ func (s *BikeUseCaseTestSuite) TestGetAllBike_Success() {
 				Lat:              "50.119504",
 				Long:             "8.638137",
 				Status:           domain.BikeStatusAvailable,
-				UserID:           nil,
-				NameOfRenter:     nil,
-				UsernameOfRenter: nil,
+				UserID:           0,
+				NameOfRenter:     "",
+				UsernameOfRenter: "",
 			},
 			{
 				ID:               1,
 				Lat:              "50.119504",
 				Long:             "8.638137",
 				Status:           domain.BikeStatusRented,
-				UserID:           &mockUserID,
-				NameOfRenter:     &mockUserResult[0].Name,
-				UsernameOfRenter: &mockUserResult[0].Username,
+				UserID:           mockUserID.Int64,
+				NameOfRenter:     mockUserResult[0].Name,
+				UsernameOfRenter: mockUserResult[0].Username,
 			},
 			{
 				ID:               1,
 				Lat:              "50.119504",
 				Long:             "8.638137",
 				Status:           domain.BikeStatusAvailable,
-				UserID:           nil,
-				NameOfRenter:     nil,
-				UsernameOfRenter: nil,
+				UserID:           0,
+				NameOfRenter:     "",
+				UsernameOfRenter: "",
 			},
 		}
 	)
@@ -122,30 +130,37 @@ func (s *BikeUseCaseTestSuite) TestGetAllBike_Success() {
 func (s *BikeUseCaseTestSuite) TestGetAllBike_FetchUserListEmpty() {
 	var (
 		mockContext = context.TODO()
-		mockUserID  = int64(1)
 		lat         = decimal.NewFromFloat(50.119504)
 		long        = decimal.NewFromFloat(8.638137)
-		mockBike    = []domain.Bike{
+		mockUserID  = sql.NullInt64{
+			Valid: true,
+			Int64: 1,
+		}
+		mockNilUserID = sql.NullInt64{
+			Valid: false,
+			Int64: 0,
+		}
+		mockBike = []domain.Bike{
 			{
 				ID:     1,
 				Lat:    &lat,
 				Long:   &long,
 				Status: domain.BikeStatusAvailable,
-				UserID: nil,
+				UserID: mockNilUserID,
 			},
 			{
 				ID:     1,
 				Lat:    &lat,
 				Long:   &long,
 				Status: domain.BikeStatusRented,
-				UserID: &mockUserID,
+				UserID: mockUserID,
 			},
 			{
 				ID:     1,
 				Lat:    &lat,
 				Long:   &long,
 				Status: domain.BikeStatusAvailable,
-				UserID: nil,
+				UserID: mockNilUserID,
 			},
 		}
 		mockResult = []domain.BikeDTO{
@@ -154,27 +169,27 @@ func (s *BikeUseCaseTestSuite) TestGetAllBike_FetchUserListEmpty() {
 				Lat:              "50.119504",
 				Long:             "8.638137",
 				Status:           domain.BikeStatusAvailable,
-				UserID:           nil,
-				NameOfRenter:     nil,
-				UsernameOfRenter: nil,
+				UserID:           0,
+				NameOfRenter:     "",
+				UsernameOfRenter: "",
 			},
 			{
 				ID:               1,
 				Lat:              "50.119504",
 				Long:             "8.638137",
 				Status:           domain.BikeStatusRented,
-				UserID:           &mockUserID,
-				NameOfRenter:     nil,
-				UsernameOfRenter: nil,
+				UserID:           mockUserID.Int64,
+				NameOfRenter:     "",
+				UsernameOfRenter: "",
 			},
 			{
 				ID:               1,
 				Lat:              "50.119504",
 				Long:             "8.638137",
 				Status:           domain.BikeStatusAvailable,
-				UserID:           nil,
-				NameOfRenter:     nil,
-				UsernameOfRenter: nil,
+				UserID:           0,
+				NameOfRenter:     "",
+				UsernameOfRenter: "",
 			},
 		}
 	)
@@ -188,30 +203,37 @@ func (s *BikeUseCaseTestSuite) TestGetAllBike_FetchUserListEmpty() {
 func (s *BikeUseCaseTestSuite) TestGetAllBike_CannotFetchUserList() {
 	var (
 		mockContext = context.TODO()
-		mockUserID  = int64(1)
 		lat         = decimal.NewFromFloat(50.119504)
 		long        = decimal.NewFromFloat(8.638137)
-		mockBike    = []domain.Bike{
+		mockUserID  = sql.NullInt64{
+			Valid: true,
+			Int64: 1,
+		}
+		mockNilUserID = sql.NullInt64{
+			Valid: false,
+			Int64: 0,
+		}
+		mockBike = []domain.Bike{
 			{
 				ID:     1,
 				Lat:    &lat,
 				Long:   &long,
 				Status: domain.BikeStatusAvailable,
-				UserID: nil,
+				UserID: mockNilUserID,
 			},
 			{
 				ID:     1,
 				Lat:    &lat,
 				Long:   &long,
 				Status: domain.BikeStatusRented,
-				UserID: &mockUserID,
+				UserID: mockUserID,
 			},
 			{
 				ID:     1,
 				Lat:    &lat,
 				Long:   &long,
 				Status: domain.BikeStatusAvailable,
-				UserID: nil,
+				UserID: mockNilUserID,
 			},
 		}
 	)
@@ -247,8 +269,15 @@ func (s *BikeUseCaseTestSuite) TestGetAllBike_InternalServerError() {
 func (s *BikeUseCaseTestSuite) TestRent_Success() {
 	var (
 		mockContext = context.TODO()
-		userID      = int64(1)
-		mockInput   = domain.RentOrReturnRequestPayload{
+		mockUserID  = sql.NullInt64{
+			Valid: true,
+			Int64: 1,
+		}
+		mockNilUserID = sql.NullInt64{
+			Valid: false,
+			Int64: 0,
+		}
+		mockInput = domain.RentOrReturnRequestPayload{
 			ID:     1,
 			UserID: 1,
 		}
@@ -259,7 +288,7 @@ func (s *BikeUseCaseTestSuite) TestRent_Success() {
 			Lat:    &lat,
 			Long:   &long,
 			Status: domain.BikeStatusAvailable,
-			UserID: nil,
+			UserID: mockNilUserID,
 		}
 		mockTime       = time.Time{}
 		mockUserResult = domain.User{
@@ -271,27 +300,27 @@ func (s *BikeUseCaseTestSuite) TestRent_Success() {
 			UpdatedAt: mockTime,
 			DeletedAt: gorm.DeletedAt{Valid: false},
 		}
-		mockResult = domain.Bike{
+		mockUpdateInput = domain.Bike{
 			ID:     1,
 			Lat:    &lat,
 			Long:   &long,
 			Status: domain.BikeStatusRented,
-			UserID: &userID,
+			UserID: mockUserID,
 		}
 		expected = domain.BikeDTO{
 			ID:               1,
 			Lat:              lat.String(),
 			Long:             long.String(),
 			Status:           domain.BikeStatusRented,
-			UserID:           &mockUserResult.ID,
-			NameOfRenter:     &mockUserResult.Name,
-			UsernameOfRenter: &mockUserResult.Username,
+			UserID:           mockUserResult.ID,
+			NameOfRenter:     mockUserResult.Name,
+			UsernameOfRenter: mockUserResult.Username,
 		}
 	)
 	s.mockRepository.On("CountByUserID", mockContext, mockInput.UserID).Return(int64(0), nil)
 	s.mockUserRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockUserResult, nil)
 	s.mockRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockExistRecord, nil)
-	s.mockRepository.On("Update", mockContext, &mockResult).Return(nil)
+	s.mockRepository.On("UpdateStatusAndUserID", mockContext, &mockUpdateInput).Return(nil)
 	actual, err := s.useCaseImpl.Rent(mockContext, mockInput)
 	s.Equal(expected, actual)
 	s.Nil(err)
@@ -383,7 +412,10 @@ func (s *BikeUseCaseTestSuite) TestRent_NotFoundData() {
 
 func (s *BikeUseCaseTestSuite) TestRent_NotAvailableByUserIDAndStatus() {
 	var (
-		userID      = int64(2)
+		mockUserID = sql.NullInt64{
+			Valid: true,
+			Int64: 1,
+		}
 		mockContext = context.TODO()
 		mockInput   = domain.RentOrReturnRequestPayload{
 			ID:     1,
@@ -396,7 +428,7 @@ func (s *BikeUseCaseTestSuite) TestRent_NotAvailableByUserIDAndStatus() {
 			Lat:    &lat,
 			Long:   &long,
 			Status: domain.BikeStatusRented,
-			UserID: &userID,
+			UserID: mockUserID,
 		}
 		mockTime       = time.Time{}
 		mockUserResult = domain.User{
@@ -445,11 +477,18 @@ func (s *BikeUseCaseTestSuite) TestRent_InternalServerErrorWhenFetchCurrentBike(
 
 func (s *BikeUseCaseTestSuite) TestRent_InternalServerErrorWhenUpdate() {
 	var (
-		userID      = int64(1)
 		mockContext = context.TODO()
 		mockInput   = domain.RentOrReturnRequestPayload{
 			ID:     1,
 			UserID: 1,
+		}
+		mockUserID = sql.NullInt64{
+			Valid: true,
+			Int64: 1,
+		}
+		mockNilUserID = sql.NullInt64{
+			Valid: false,
+			Int64: 0,
 		}
 		lat             = decimal.NewFromFloat(50.119504)
 		long            = decimal.NewFromFloat(8.638137)
@@ -458,14 +497,14 @@ func (s *BikeUseCaseTestSuite) TestRent_InternalServerErrorWhenUpdate() {
 			Lat:    &lat,
 			Long:   &long,
 			Status: domain.BikeStatusAvailable,
-			UserID: nil,
+			UserID: mockNilUserID,
 		}
 		mockUpdateInput = domain.Bike{
 			ID:     1,
 			Lat:    &lat,
 			Long:   &long,
 			Status: domain.BikeStatusRented,
-			UserID: &userID,
+			UserID: mockUserID,
 		}
 		mockTime       = time.Time{}
 		mockUserResult = domain.User{
@@ -481,7 +520,7 @@ func (s *BikeUseCaseTestSuite) TestRent_InternalServerErrorWhenUpdate() {
 	s.mockRepository.On("CountByUserID", mockContext, mockInput.UserID).Return(int64(0), nil)
 	s.mockUserRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockUserResult, nil)
 	s.mockRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockExistRecord, nil)
-	s.mockRepository.On("Update", mockContext, &mockUpdateInput).Return(gorm.ErrInvalidData)
+	s.mockRepository.On("UpdateStatusAndUserID", mockContext, &mockUpdateInput).Return(gorm.ErrInvalidData)
 	actual, err := s.useCaseImpl.Rent(mockContext, mockInput)
 	s.Equal(domain.BikeDTO{}, actual)
 	s.Equal(apperrors.ErrInternalServerError, err)
@@ -489,7 +528,14 @@ func (s *BikeUseCaseTestSuite) TestRent_InternalServerErrorWhenUpdate() {
 
 func (s *BikeUseCaseTestSuite) TestReturn_Success() {
 	var (
-		userID      = int64(1)
+		mockUserID = sql.NullInt64{
+			Valid: true,
+			Int64: 1,
+		}
+		mockNilUserID = sql.NullInt64{
+			Valid: false,
+			Int64: 0,
+		}
 		mockContext = context.TODO()
 		mockInput   = domain.RentOrReturnRequestPayload{
 			ID:     1,
@@ -502,18 +548,18 @@ func (s *BikeUseCaseTestSuite) TestReturn_Success() {
 			Lat:    &lat,
 			Long:   &long,
 			Status: domain.BikeStatusRented,
-			UserID: &userID,
+			UserID: mockUserID,
 		}
 		mockResult = domain.Bike{
 			ID:     1,
 			Lat:    &lat,
 			Long:   &long,
 			Status: domain.BikeStatusAvailable,
-			UserID: nil,
+			UserID: mockNilUserID,
 		}
 	)
 	s.mockRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockExistRecord, nil)
-	s.mockRepository.On("Update", mockContext, &mockResult).Return(nil)
+	s.mockRepository.On("UpdateStatusAndUserID", mockContext, &mockResult).Return(nil)
 	actual, err := s.useCaseImpl.Return(mockContext, mockInput)
 	s.Equal(mockResult.ToDTO(), actual)
 	s.Nil(err)
@@ -521,7 +567,14 @@ func (s *BikeUseCaseTestSuite) TestReturn_Success() {
 
 func (s *BikeUseCaseTestSuite) TestReturn_InternalServerErrorWhenUpdate() {
 	var (
-		userID      = int64(1)
+		mockUserID = sql.NullInt64{
+			Valid: true,
+			Int64: 1,
+		}
+		mockNilUserID = sql.NullInt64{
+			Valid: false,
+			Int64: 0,
+		}
 		mockContext = context.TODO()
 		mockInput   = domain.RentOrReturnRequestPayload{
 			ID:     1,
@@ -534,18 +587,18 @@ func (s *BikeUseCaseTestSuite) TestReturn_InternalServerErrorWhenUpdate() {
 			Lat:    &lat,
 			Long:   &long,
 			Status: domain.BikeStatusRented,
-			UserID: &userID,
+			UserID: mockUserID,
 		}
 		mockResult = domain.Bike{
 			ID:     1,
 			Lat:    &lat,
 			Long:   &long,
 			Status: domain.BikeStatusAvailable,
-			UserID: nil,
+			UserID: mockNilUserID,
 		}
 	)
 	s.mockRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockExistRecord, nil)
-	s.mockRepository.On("Update", mockContext, &mockResult).Return(gorm.ErrEmptySlice)
+	s.mockRepository.On("UpdateStatusAndUserID", mockContext, &mockResult).Return(gorm.ErrEmptySlice)
 	actual, err := s.useCaseImpl.Return(mockContext, mockInput)
 	s.Equal(domain.BikeDTO{}, actual)
 	s.Equal(apperrors.ErrInternalServerError, err)
@@ -581,8 +634,12 @@ func (s *BikeUseCaseTestSuite) TestReturn_NotFoundBike() {
 
 func (s *BikeUseCaseTestSuite) TestReturn_BikeNotAvailable() {
 	var (
-		mockContext = context.TODO()
-		mockInput   = domain.RentOrReturnRequestPayload{
+		mockContext   = context.TODO()
+		mockNilUserID = sql.NullInt64{
+			Valid: false,
+			Int64: 0,
+		}
+		mockInput = domain.RentOrReturnRequestPayload{
 			ID:     1,
 			UserID: 1,
 		}
@@ -593,7 +650,7 @@ func (s *BikeUseCaseTestSuite) TestReturn_BikeNotAvailable() {
 			Lat:    &lat,
 			Long:   &long,
 			Status: domain.BikeStatusAvailable,
-			UserID: nil,
+			UserID: mockNilUserID,
 		}
 	)
 	s.mockRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockExistRecord, nil)
@@ -604,7 +661,10 @@ func (s *BikeUseCaseTestSuite) TestReturn_BikeNotAvailable() {
 
 func (s *BikeUseCaseTestSuite) TestReturn_BikeIsNotYours() {
 	var (
-		userID      = int64(1)
+		mockUserID = sql.NullInt64{
+			Valid: true,
+			Int64: 1,
+		}
 		mockContext = context.TODO()
 		mockInput   = domain.RentOrReturnRequestPayload{
 			ID:     1,
@@ -617,7 +677,7 @@ func (s *BikeUseCaseTestSuite) TestReturn_BikeIsNotYours() {
 			Lat:    &lat,
 			Long:   &long,
 			Status: domain.BikeStatusRented,
-			UserID: &userID,
+			UserID: mockUserID,
 		}
 	)
 	s.mockRepository.On("GetByID", mockContext, mockInput.ID).Return(&mockExistRecord, nil)

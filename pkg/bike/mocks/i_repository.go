@@ -81,8 +81,8 @@ func (_m *IRepository) GetList(ctx context.Context) (*[]domain.Bike, error) {
 	return r0, r1
 }
 
-// Update provides a mock function with given fields: ctx, body
-func (_m *IRepository) Update(ctx context.Context, body *domain.Bike) error {
+// UpdateStatusAndUserID provides a mock function with given fields: ctx, body
+func (_m *IRepository) UpdateStatusAndUserID(ctx context.Context, body *domain.Bike) error {
 	ret := _m.Called(ctx, body)
 
 	var r0 error

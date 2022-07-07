@@ -49,7 +49,11 @@ func (h *handlerImpl) Login(c echo.Context) error {
 		return c.JSON(apperrors.GetStatusCode(err), err.Error())
 	}
 	c.Logger().Info("[UserHandler.Login] login success")
-	h.setSession(user, c)
+	err = h.setSession(user, c)
+	if err != nil {
+		c.Logger().Error("[UserHandler.Login] set session error", err)
+		return c.JSON(http.StatusInternalServerError, "internal server error")
+	}
 	return c.JSON(http.StatusNoContent, nil)
 }
 
@@ -95,6 +99,10 @@ func (h *handlerImpl) Register(c echo.Context) error {
 		return c.JSON(apperrors.GetStatusCode(err), err.Error())
 	}
 	c.Logger().Info("[UserHandler.Register] register success")
-	h.setSession(user, c)
+	err = h.setSession(user, c)
+	if err != nil {
+		c.Logger().Error("[UserHandler.Register] set session error", err)
+		return c.JSON(http.StatusInternalServerError, "internal server error")
+	}
 	return c.JSON(http.StatusCreated, nil)
 }

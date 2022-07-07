@@ -45,8 +45,8 @@ func (r *repositoryImpl) CountByUserID(ctx context.Context, id int64) (int64, er
 	return total, nil
 }
 
-func (r *repositoryImpl) Update(ctx context.Context, body *domain.Bike) error {
-	err := r.db.Where("id = ?", body.ID).Updates(body).Error
+func (r *repositoryImpl) UpdateStatusAndUserID(ctx context.Context, body *domain.Bike) error {
+	err := r.db.Select("status", "user_id").Where("id = ?", body.ID).Updates(body).Error
 	if err != nil {
 		return err
 	}

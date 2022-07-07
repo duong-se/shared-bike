@@ -2,6 +2,7 @@ package bike
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
 	"shared-bike/apperrors"
@@ -49,11 +50,9 @@ func (u *useCaseImpl) transformBikeDTOList(bikes *[]domain.Bike, usersMap map[in
 	results := []domain.BikeDTO{}
 	for _, bike := range *bikes {
 		rentedBike := bike.ToDTO()
-		if (bike.UserID != nil && usersMap[*bike.UserID] != domain.User{}) {
-			name := usersMap[*bike.UserID].Name
-			username := usersMap[*bike.UserID].Username
-			rentedBike.NameOfRenter = &name
-			rentedBike.UsernameOfRenter = &username
+		if (bike.UserID.Valid && usersMap[bike.UserID.Int64] != domain.User{}) {
+			rentedBike.NameOfRenter = usersMap[bike.UserID.Int64].Name
+			rentedBike.UsernameOfRenter = usersMap[bike.UserID.Int64].Username
 		}
 		results = append(results, rentedBike)
 	}
@@ -83,8 +82,8 @@ func (u *useCaseImpl) getUserIDs(bikes *[]domain.Bike) []int64 {
 		userIDs []int64
 	)
 	for _, bike := range *bikes {
-		if bike.UserID != nil {
-			userIDs = append(userIDs, *bike.UserID)
+		if bike.UserID.Valid {
+			userIDs = append(userIDs, bike.UserID.Int64)
 		}
 	}
 	return userIDs
@@ -139,9 +138,12 @@ func (u *useCaseImpl) Rent(ctx context.Context, body domain.RentOrReturnRequestP
 		Lat:    currentBike.Lat,
 		Long:   currentBike.Long,
 		Status: domain.BikeStatusRented,
-		UserID: &body.UserID,
+		UserID: sql.NullInt64{
+			Valid: true,
+			Int64: body.UserID,
+		},
 	}
-	err = u.repository.Update(ctx, updatedBike)
+	err = u.repository.UpdateStatusAndUserID(ctx, updatedBike)
 	if err != nil {
 		u.logger.Errorf("[BikeUseCase.Rent] user %d rent bike %d failed", body.UserID, body.ID, err)
 		return domain.BikeDTO{}, apperrors.ErrInternalServerError
@@ -149,8 +151,8 @@ func (u *useCaseImpl) Rent(ctx context.Context, body domain.RentOrReturnRequestP
 	u.logger.Infof("[BikeUseCase.Rent] user %d rent bike %d success", body.UserID, body.ID)
 	result := updatedBike.ToDTO()
 	if currentUser != nil {
-		result.NameOfRenter = &currentUser.Name
-		result.UsernameOfRenter = &currentUser.Username
+		result.NameOfRenter = currentUser.Name
+		result.UsernameOfRenter = currentUser.Username
 	}
 	return result, nil
 }
@@ -170,7 +172,7 @@ func (u *useCaseImpl) Return(ctx context.Context, body domain.RentOrReturnReques
 		u.logger.Info("[BikeUseCase.Return] cannot return because bike is available")
 		return domain.BikeDTO{}, apperrors.ErrBikeAvailable
 	}
-	if body.UserID != *currentBike.UserID {
+	if body.UserID != currentBike.UserID.Int64 {
 		u.logger.Info("[BikeUseCase.Return] cannot return because bike is not yours")
 		return domain.BikeDTO{}, apperrors.ErrBikeNotYours
 	}
@@ -180,9 +182,12 @@ func (u *useCaseImpl) Return(ctx context.Context, body domain.RentOrReturnReques
 		Lat:    currentBike.Lat,
 		Long:   currentBike.Long,
 		Status: domain.BikeStatusAvailable,
-		UserID: nil,
+		UserID: sql.NullInt64{
+			Valid: false,
+			Int64: 0,
+		},
 	}
-	err = u.repository.Update(ctx, updatedBike)
+	err = u.repository.UpdateStatusAndUserID(ctx, updatedBike)
 	if err != nil {
 		u.logger.Errorf("[BikeUseCase.Return] user %d is return bike %d failed", currentBike.UserID, body.ID, err)
 		return domain.BikeDTO{}, apperrors.ErrInternalServerError
