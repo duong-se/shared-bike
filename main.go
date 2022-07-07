@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -50,6 +51,10 @@ func main() {
 	}
 	// Setup
 	e := echo.New()
+	dbInstance, _ := db.DB()
+	if err := dbInstance.Ping(); err != nil {
+		e.Logger.Fatal(fmt.Errorf("connect db error: %w", err))
+	}
 	e.Use(customMiddleware.AddHeaderXRequestID)
 	cookieSecret := os.Getenv("COOKIE_SECRET")
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(cookieSecret))))
