@@ -19,15 +19,18 @@ type CustomContext struct {
 
 func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		unauthorizedErr := apperrors.ErrUnauthorizeError
 		sess, err := session.Get("session", c)
 		if err != nil {
-			return err
+			c.Logger().Error("[Middlware.Authorize] error on get session", err)
+			return c.JSON(apperrors.GetStatusCode(unauthorizedErr), unauthorizedErr.Error())
 		}
 		if sess.Values[UserIDKey] != nil {
+			c.Logger().Info("[Middlware.Authorize] authorized request")
 			c.Set(UserIDKey, sess.Values[UserIDKey])
 			return next(c)
 		}
-		unauthorizedErr := apperrors.ErrUnauthorizeError
+		c.Logger().Info("[Middlware.Authorize] unauthorized request")
 		return c.JSON(apperrors.GetStatusCode(unauthorizedErr), unauthorizedErr.Error())
 	}
 }
