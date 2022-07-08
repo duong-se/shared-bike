@@ -3,7 +3,6 @@ package middleware
 import (
 	"shared-bike/apperrors"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 )
@@ -35,15 +34,18 @@ func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func AddHeaderXRequestID(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		reqId := c.Request().Header.Get(echo.HeaderXRequestID)
-		if len(reqId) == 0 {
-			reqId = uuid.NewString()
-			c.Request().Header.Set(echo.HeaderXRequestID, reqId)
+func AddLoggerContext(contextLogger CustomLogger) func(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			req := c.Request()
+			res := c.Response()
+			id := req.Header.Get(echo.HeaderXRequestID)
+			if id == "" {
+				id = res.Header().Get(echo.HeaderXRequestID)
+			}
+			contextLogger.SetRequestID(id)
+			c.SetLogger(contextLogger)
+			return next(c)
 		}
-		c.Logger().SetPrefix(reqId)
-		c.Response().Header().Set(echo.HeaderXRequestID, reqId)
-		return next(c)
 	}
 }

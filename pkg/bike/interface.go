@@ -19,9 +19,8 @@ type IUserRepository interface {
 }
 
 type ILogger interface {
-	Infof(format string, args ...interface{})
-	Errorf(format string, args ...interface{})
 	Info(i ...interface{})
+	Warn(i ...interface{})
 	Error(i ...interface{})
 }
 

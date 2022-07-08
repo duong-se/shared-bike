@@ -1,6 +1,7 @@
 package bike
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -61,7 +62,7 @@ func (h *handlerImpl) Rent(c echo.Context) error {
 	)
 	bikeIDStr := c.Param("id")
 	if bikeID, err = strconv.ParseInt(bikeIDStr, 10, 64); err != nil {
-		c.Logger().Errorf("[BikeHandler.Rent] invalid bike %s", bikeIDStr, err)
+		c.Logger().Error(fmt.Sprintf("[BikeHandler.Rent] invalid bike %s", bikeIDStr), err)
 		return c.JSON(http.StatusBadRequest, "invalid bike id")
 	}
 	userID := c.Get(middleware.UserIDKey).(int64)
@@ -69,13 +70,13 @@ func (h *handlerImpl) Rent(c echo.Context) error {
 		ID:     bikeID,
 		UserID: userID,
 	}
-	c.Logger().Infof("[BikeHandler.Rent] user %d is renting bike %s", userID, bikeIDStr)
+	c.Logger().Info(fmt.Sprintf("[BikeHandler.Rent] user %d is renting bike %s", userID, bikeIDStr))
 	bikes, err := h.useCase.Rent(ctx, request)
 	if err != nil {
-		c.Logger().Errorf("[BikeHandler.Rent] user %d rent bike %s failed", userID, bikeIDStr, err)
+		c.Logger().Error(fmt.Sprintf("[BikeHandler.Rent] user %d rent bike %s failed", userID, bikeIDStr), err)
 		return c.JSON(apperrors.GetStatusCode(err), err.Error())
 	}
-	c.Logger().Infof("[BikeHandler.Rent] user %d rent bike %s success", userID, bikeIDStr)
+	c.Logger().Info(fmt.Sprintf("[BikeHandler.Rent] user %d rent bike %s success", userID, bikeIDStr))
 	return c.JSON(http.StatusOK, bikes)
 }
 
@@ -98,7 +99,7 @@ func (h *handlerImpl) Return(c echo.Context) error {
 	)
 	bikeIDStr := c.Param("id")
 	if bikeID, err = strconv.ParseInt(bikeIDStr, 10, 64); err != nil {
-		c.Logger().Errorf("[BikeHandler.Return] invalid bike id %s", bikeIDStr, err)
+		c.Logger().Error(fmt.Sprintf("[BikeHandler.Return] invalid bike id %s", bikeIDStr), err)
 		return c.JSON(http.StatusBadRequest, "invalid bike id")
 	}
 	userID := c.Get(middleware.UserIDKey).(int64)
@@ -106,12 +107,12 @@ func (h *handlerImpl) Return(c echo.Context) error {
 		ID:     bikeID,
 		UserID: userID,
 	}
-	c.Logger().Infof("[BikeHandler.Return] user %d is returning bike %s", userID, bikeIDStr)
+	c.Logger().Info(fmt.Sprintf("[BikeHandler.Return] user %d is returning bike %s", userID, bikeIDStr))
 	bikes, err := h.useCase.Return(ctx, request)
 	if err != nil {
-		c.Logger().Errorf("[BikeHandler.Return] user %d is return bike %s failed", userID, bikeIDStr, err)
+		c.Logger().Error(fmt.Sprintf("[BikeHandler.Return] user %d is return bike %s failed", userID, bikeIDStr), err)
 		return c.JSON(apperrors.GetStatusCode(err), err.Error())
 	}
-	c.Logger().Infof("[BikeHandler.Return] user %d return bike %s success", userID, bikeIDStr)
+	c.Logger().Info(fmt.Sprintf("[BikeHandler.Return] user %d return bike %s success", userID, bikeIDStr))
 	return c.JSON(http.StatusOK, bikes)
 }

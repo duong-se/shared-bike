@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"time"
 
+	"shared-bike/customlogger"
 	docs "shared-bike/docs"
 	customMiddleware "shared-bike/middleware"
 	"shared-bike/pkg/bike"
@@ -51,17 +52,23 @@ func main() {
 	}
 	// Setup
 	e := echo.New()
+	contextLogger := customlogger.NewContextLogger(e.Logger)
+	e.Logger.SetPrefix("shared-bike")
+	e.Logger.SetLevel(log.INFO)
+	cookieSecret := os.Getenv("COOKIE_SECRET")
+	e.Use(
+		session.Middleware(sessions.NewCookieStore([]byte(cookieSecret))),
+		middleware.GzipWithConfig(middleware.GzipConfig{
+			Level: 5,
+		}),
+		middleware.RequestID(),
+		customMiddleware.AddLoggerContext(contextLogger),
+		middleware.Logger(),
+	)
 	dbInstance, _ := db.DB()
 	if err := dbInstance.Ping(); err != nil {
 		e.Logger.Fatal(fmt.Errorf("connect db error: %w", err))
 	}
-	e.Use(customMiddleware.AddHeaderXRequestID)
-	cookieSecret := os.Getenv("COOKIE_SECRET")
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte(cookieSecret))))
-	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
-		Level: 5,
-	}))
-	e.Logger.SetLevel(log.INFO)
 	e.GET("/health", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, "OK")
 	})

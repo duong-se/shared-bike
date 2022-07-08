@@ -16,14 +16,6 @@ func (_m *ILogger) Error(i ...interface{}) {
 	_m.Called(_ca...)
 }
 
-// Errorf provides a mock function with given fields: format, args
-func (_m *ILogger) Errorf(format string, args ...interface{}) {
-	var _ca []interface{}
-	_ca = append(_ca, format)
-	_ca = append(_ca, args...)
-	_m.Called(_ca...)
-}
-
 // Info provides a mock function with given fields: i
 func (_m *ILogger) Info(i ...interface{}) {
 	var _ca []interface{}
@@ -31,11 +23,10 @@ func (_m *ILogger) Info(i ...interface{}) {
 	_m.Called(_ca...)
 }
 
-// Infof provides a mock function with given fields: format, args
-func (_m *ILogger) Infof(format string, args ...interface{}) {
+// Warn provides a mock function with given fields: i
+func (_m *ILogger) Warn(i ...interface{}) {
 	var _ca []interface{}
-	_ca = append(_ca, format)
-	_ca = append(_ca, args...)
+	_ca = append(_ca, i...)
 	_m.Called(_ca...)
 }
 

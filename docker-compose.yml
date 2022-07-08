@@ -38,6 +38,7 @@ services:
       BASE_URL: localhost:8000
       DATABASE_HOST: db
       DATABASE_PORT: 3306
+      ENV: dev
     networks:
       - default
 

@@ -20,7 +20,7 @@ func (s *BikeHandlerTestSuite) SetupTest() {
 	e := echo.New()
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("my-secret"))))
 	e.Use(Authorize)
-	e.Use(AddHeaderXRequestID)
+	// e.Use(AddHeaderXRequestID)
 	e.GET("/", func(c echo.Context) error {
 		return c.HTML(http.StatusOK, "body output")
 	})

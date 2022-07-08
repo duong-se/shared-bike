@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"shared-bike/apperrors"
 	"shared-bike/domain"
@@ -60,7 +61,7 @@ func (u *useCaseImpl) transformBikeDTOList(bikes *[]domain.Bike, usersMap map[in
 }
 
 func (u *useCaseImpl) fetchMapUsersByID(ctx context.Context, userIDs []int64) (map[int64]domain.User, error) {
-	u.logger.Infof("[BikeUseCase.fetchUsers] fetch all user by IDs failed", userIDs)
+	u.logger.Info(fmt.Sprintf("[BikeUseCase.fetchUsers] fetch all user by IDs failed %d", userIDs))
 	users, err := u.userRepository.GetListByIDs(ctx, userIDs)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return map[int64]domain.User{}, nil
@@ -101,32 +102,32 @@ func (u *useCaseImpl) checkRented(ctx context.Context, userID int64) (bool, erro
 }
 
 func (u *useCaseImpl) Rent(ctx context.Context, body domain.RentOrReturnRequestPayload) (domain.BikeDTO, error) {
-	u.logger.Infof("[BikeUseCase.Rent] user %d is renting bike %d", body.UserID, body.ID)
+	u.logger.Info(fmt.Sprintf("[BikeUseCase.Rent] user %d is renting bike %d", body.UserID, body.ID))
 	isRented, err := u.checkRented(ctx, body.UserID)
 	if err != nil {
-		u.logger.Errorf("[BikeUseCase.Rent] user %d check rented or not failed", body.UserID, err)
+		u.logger.Error(fmt.Sprintf("[BikeUseCase.Rent] user %d check rented or not failed", body.UserID), err)
 		return domain.BikeDTO{}, apperrors.ErrInternalServerError
 	}
 	if isRented {
-		u.logger.Infof("[BikeUseCase.Rent] user %d is already renting a bike", body.UserID)
+		u.logger.Info(fmt.Sprintf("[BikeUseCase.Rent] user %d is already renting a bike", body.UserID))
 		return domain.BikeDTO{}, apperrors.ErrUserHasBikeAlready
 	}
 	currentUser, err := u.userRepository.GetByID(ctx, body.UserID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		u.logger.Errorf("[BikeUseCase.Rent] user %d not exists", body.UserID, err)
+		u.logger.Error(fmt.Sprintf("[BikeUseCase.Rent] user %d not exists", body.UserID), err)
 		return domain.BikeDTO{}, apperrors.ErrUserNotExisted
 	}
 	if err != nil {
-		u.logger.Errorf("[BikeUseCase.Rent] user %d fetch failed", body.UserID, err)
+		u.logger.Error(fmt.Sprintf("[BikeUseCase.Rent] user %d fetch failed", body.UserID), err)
 		return domain.BikeDTO{}, apperrors.ErrInternalServerError
 	}
 	currentBike, err := u.repository.GetByID(ctx, body.ID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		u.logger.Infof("[BikeUseCase.Rent] cannot find bike %d", body.ID)
+		u.logger.Info(fmt.Sprintf("[BikeUseCase.Rent] cannot find bike %d", body.ID))
 		return domain.BikeDTO{}, apperrors.ErrBikeNotFound
 	}
 	if err != nil {
-		u.logger.Errorf("[BikeUseCase.Rent] fetch current bike %d failed", body.ID, err)
+		u.logger.Error(fmt.Sprintf("[BikeUseCase.Rent] fetch current bike %d failed", body.ID), err)
 		return domain.BikeDTO{}, apperrors.ErrInternalServerError
 	}
 	if currentBike.IsRented() {
@@ -145,10 +146,10 @@ func (u *useCaseImpl) Rent(ctx context.Context, body domain.RentOrReturnRequestP
 	}
 	err = u.repository.UpdateStatusAndUserID(ctx, updatedBike)
 	if err != nil {
-		u.logger.Errorf("[BikeUseCase.Rent] user %d rent bike %d failed", body.UserID, body.ID, err)
+		u.logger.Error(fmt.Sprintf("[BikeUseCase.Rent] user %d rent bike %d failed", body.UserID, body.ID), err)
 		return domain.BikeDTO{}, apperrors.ErrInternalServerError
 	}
-	u.logger.Infof("[BikeUseCase.Rent] user %d rent bike %d success", body.UserID, body.ID)
+	u.logger.Info(fmt.Sprintf("[BikeUseCase.Rent] user %d rent bike %d success", body.UserID, body.ID))
 	result := updatedBike.ToDTO()
 	if currentUser != nil {
 		result.NameOfRenter = currentUser.Name
@@ -160,14 +161,14 @@ func (u *useCaseImpl) Rent(ctx context.Context, body domain.RentOrReturnRequestP
 func (u *useCaseImpl) Return(ctx context.Context, body domain.RentOrReturnRequestPayload) (domain.BikeDTO, error) {
 	currentBike, err := u.repository.GetByID(ctx, body.ID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		u.logger.Infof("[BikeUseCase.Return] cannot find bike %d", body.ID)
+		u.logger.Info(fmt.Sprintf("[BikeUseCase.Return] cannot find bike %d", body.ID))
 		return domain.BikeDTO{}, apperrors.ErrBikeNotFound
 	}
 	if err != nil {
-		u.logger.Errorf("[BikeUseCase.Return] fetch current bike %d failed", body.ID, err)
+		u.logger.Error(fmt.Sprintf("[BikeUseCase.Return] fetch current bike %d failed", body.ID), err)
 		return domain.BikeDTO{}, apperrors.ErrInternalServerError
 	}
-	u.logger.Infof("[BikeUseCase.Return] user %d is returning bike %d", currentBike.UserID, body.ID)
+	u.logger.Info(fmt.Sprintf("[BikeUseCase.Return] user %d is returning bike %d", currentBike.UserID.Int64, body.ID))
 	if currentBike.IsAvailable() {
 		u.logger.Info("[BikeUseCase.Return] cannot return because bike is available")
 		return domain.BikeDTO{}, apperrors.ErrBikeAvailable
@@ -189,10 +190,10 @@ func (u *useCaseImpl) Return(ctx context.Context, body domain.RentOrReturnReques
 	}
 	err = u.repository.UpdateStatusAndUserID(ctx, updatedBike)
 	if err != nil {
-		u.logger.Errorf("[BikeUseCase.Return] user %d is return bike %d failed", currentBike.UserID, body.ID, err)
+		u.logger.Error(fmt.Sprintf("[BikeUseCase.Return] user %d is return bike %d failed", currentBike.UserID.Int64, body.ID), err)
 		return domain.BikeDTO{}, apperrors.ErrInternalServerError
 	}
-	u.logger.Infof("[BikeUseCase.Return] user %d is return bike %d failed", currentBike.UserID, body.ID)
+	u.logger.Info(fmt.Sprintf("[BikeUseCase.Return] user %d is return bike %d failed", currentBike.UserID.Int64, body.ID))
 	result := updatedBike.ToDTO()
 	return result, nil
 }

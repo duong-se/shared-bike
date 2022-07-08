@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"shared-bike/apperrors"
 	"shared-bike/domain"
@@ -35,10 +36,10 @@ func (u *useCaseImpl) Login(ctx context.Context, body domain.LoginBody) (domain.
 		return domain.UserDTO{}, apperrors.ErrInternalServerError
 	}
 	if !user.ValidatePassword(body.Password) {
-		u.logger.Infof("[UserUseCase.Login] user %d login with password does not match", user.ID)
+		u.logger.Info(fmt.Sprintf("[UserUseCase.Login] user %d login with password does not match", user.ID))
 		return domain.UserDTO{}, apperrors.ErrUserLoginNotFound
 	}
-	u.logger.Infof("[UserUseCase.Login] user %d login success", user.ID)
+	u.logger.Info(fmt.Sprintf("[UserUseCase.Login] user %d login success", user.ID))
 	return user.ToDTO(), nil
 }
 
@@ -55,6 +56,6 @@ func (u *useCaseImpl) Register(ctx context.Context, body domain.RegisterBody) (d
 		u.logger.Error("[UserUseCase.Register] register failed", err)
 		return domain.UserDTO{}, apperrors.ErrInternalServerError
 	}
-	u.logger.Infof("[UserUseCase.Register] user %d register success", newUser.ID)
+	u.logger.Info(fmt.Sprintf("[UserUseCase.Register] user %d register success", newUser.ID))
 	return newUser.ToDTO(), nil
 }

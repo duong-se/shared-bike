@@ -31,10 +31,8 @@ func (s *BikeUseCaseTestSuite) SetupTest() {
 	s.mockLogger = mockLogger
 	mockUserRepository := &mocks.IUserRepository{}
 	s.mockUserRepository = mockUserRepository
-	s.mockLogger.On("Info", mock.Anything, mock.Anything, mock.Anything).Return()
-	s.mockLogger.On("Error", mock.Anything, mock.Anything, mock.Anything).Return()
-	s.mockLogger.On("Infof", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return()
-	s.mockLogger.On("Errorf", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return()
+	s.mockLogger.On("Info", mock.Anything, mock.Anything).Return()
+	s.mockLogger.On("Error", mock.Anything, mock.Anything).Return()
 	useCase := NewUseCase(mockLogger, mockRepository, mockUserRepository)
 	s.useCaseImpl = useCase
 }

@@ -26,10 +26,8 @@ func (s *UserUseCaseTestSuite) SetupTest() {
 	mockLogger := &mocks.ILogger{}
 	s.mockRepository = mockRepository
 	s.mockLogger = mockLogger
-	s.mockLogger.On("Info", mock.Anything, mock.Anything, mock.Anything).Return()
-	s.mockLogger.On("Error", mock.Anything, mock.Anything, mock.Anything).Return()
-	s.mockLogger.On("Infof", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return()
-	s.mockLogger.On("Errorf", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return()
+	s.mockLogger.On("Info", mock.Anything, mock.Anything).Return()
+	s.mockLogger.On("Error", mock.Anything, mock.Anything).Return()
 	useCase := NewUseCase(mockLogger, mockRepository)
 	s.useCaseImpl = useCase
 }
