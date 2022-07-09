@@ -66,7 +66,7 @@ func (h *handlerImpl) setSession(user domain.UserDTO, c echo.Context) error {
 	sess.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   day * 7,
-		HttpOnly: true,
+		HttpOnly: false,
 		Secure:   false,
 	}
 	sess.Values[middleware.UserIDKey] = user.ID

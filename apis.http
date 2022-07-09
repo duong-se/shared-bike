@@ -3,7 +3,7 @@
 @token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTY4MjM3NTgsIlByb3ZpZGVySUQiOjEsIlBob25lIjoiNDQ3OTM4NTU2NDAzIiwiUm9sZSI6InByb3ZpZGVyIn0.qgJloBIscUqAO3p_PCUC5R0TzaTtOjNJ1gcZsxV-eCE
 
 ## User
-@username = test2
+@username = test1
 @password = password
 @name=Test User 2
 ### register user

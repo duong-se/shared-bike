@@ -64,6 +64,11 @@ func main() {
 		middleware.RequestID(),
 		customMiddleware.AddLoggerContext(contextLogger),
 		middleware.Logger(),
+		middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins:     []string{"http://localhost:3000"},
+			AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderXRequestID},
+			AllowCredentials: true,
+		}),
 	)
 	dbInstance, _ := db.DB()
 	if err := dbInstance.Ping(); err != nil {
