@@ -171,8 +171,11 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": ""
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Credentials"
+                        }
                     },
                     "400": {
                         "description": "invalid body",
@@ -220,8 +223,11 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": ""
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Credentials"
+                        }
                     },
                     "400": {
                         "description": "invalid body",
@@ -273,6 +279,14 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.Credentials": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.LoginBody": {
             "type": "object",
             "properties": {
@@ -305,8 +319,10 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "BasicAuth": {
-            "type": "basic"
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

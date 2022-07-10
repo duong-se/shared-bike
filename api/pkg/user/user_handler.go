@@ -2,14 +2,14 @@ package user
 
 import (
 	"net/http"
+	"os"
+	"time"
 
 	"shared-bike/domain"
-	"shared-bike/middleware"
 
 	"shared-bike/apperrors"
 
-	"github.com/gorilla/sessions"
-	"github.com/labstack/echo-contrib/session"
+	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
 
@@ -30,10 +30,10 @@ func NewHandler(usecase IUseCase) *handlerImpl {
 // @Accept       json
 // @Produce      json
 // @Param    		 request  body      domain.LoginBody  true  "Login body"
-// @Success      204
-// @Failure      400  {string}  string 	"invalid body"
-// @Failure      404  {string}  string 	"username or password is wrong"
-// @Failure      500  {string}  string 	"internal server error"
+// @Success      200	{object}  domain.Credentials 	"success"
+// @Failure      400  {string}  string 							"invalid body"
+// @Failure      404  {string}  string 							"username or password is wrong"
+// @Failure      500  {string}  string 							"internal server error"
 // @Router       /users/login [post]
 func (h *handlerImpl) Login(c echo.Context) error {
 	ctx := c.Request().Context()
@@ -49,29 +49,32 @@ func (h *handlerImpl) Login(c echo.Context) error {
 		return c.JSON(apperrors.GetStatusCode(err), err.Error())
 	}
 	c.Logger().Info("[UserHandler.Login] login success")
-	err = h.setSession(user, c)
+	token, err := h.signToken(user, 300)
 	if err != nil {
 		c.Logger().Error("[UserHandler.Login] set session error", err)
 		return c.JSON(http.StatusInternalServerError, "internal server error")
 	}
-	return c.JSON(http.StatusNoContent, nil)
+	return c.JSON(http.StatusOK, domain.Credentials{AccessToken: token})
 }
 
-func (h *handlerImpl) setSession(user domain.UserDTO, c echo.Context) error {
-	sess, err := session.Get("session", c)
+func (h *handlerImpl) signToken(user domain.UserDTO, duration time.Duration) (string, error) {
+	expiresAt := time.Now().Add(time.Minute * time.Duration(duration)).Unix()
+	// Set custom claims
+	claims := &domain.Claims{
+		ID:       user.ID,
+		Username: user.Username,
+		Name:     user.Name,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expiresAt,
+		},
+	}
+	secret := os.Getenv("SECRET")
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	t, err := token.SignedString([]byte(secret))
 	if err != nil {
-		return err
+		return "", err
 	}
-	day := 86400
-	sess.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   day * 7,
-		HttpOnly: false,
-		Secure:   false,
-	}
-	sess.Values[middleware.UserIDKey] = user.ID
-	sess.Save(c.Request(), c.Response())
-	return nil
+	return t, nil
 }
 
 // Register godoc
@@ -81,9 +84,9 @@ func (h *handlerImpl) setSession(user domain.UserDTO, c echo.Context) error {
 // @Accept       json
 // @Produce      json
 // @Param    		 request  body      domain.RegisterBody  true  "Register body"
-// @Success      204
-// @Failure      400  {string}  string 	"invalid body"
-// @Failure      500  {string}  string 	"internal server error"
+// @Success      200	{object}  domain.Credentials 	"success"
+// @Failure      400  {string}  string 							"invalid body"
+// @Failure      500  {string}  string 							"internal server error"
 // @Router       /users/register [post]
 func (h *handlerImpl) Register(c echo.Context) error {
 	c.Logger().Info("[UserHandler.Register] register is starting")
@@ -99,10 +102,10 @@ func (h *handlerImpl) Register(c echo.Context) error {
 		return c.JSON(apperrors.GetStatusCode(err), err.Error())
 	}
 	c.Logger().Info("[UserHandler.Register] register success")
-	err = h.setSession(user, c)
+	token, err := h.signToken(user, 300)
 	if err != nil {
 		c.Logger().Error("[UserHandler.Register] set session error", err)
 		return c.JSON(http.StatusInternalServerError, "internal server error")
 	}
-	return c.JSON(http.StatusCreated, nil)
+	return c.JSON(http.StatusCreated, domain.Credentials{AccessToken: token})
 }

@@ -163,8 +163,11 @@
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": ""
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Credentials"
+                        }
                     },
                     "400": {
                         "description": "invalid body",
@@ -212,8 +215,11 @@
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": ""
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Credentials"
+                        }
                     },
                     "400": {
                         "description": "invalid body",
@@ -265,6 +271,14 @@
                 }
             }
         },
+        "domain.Credentials": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.LoginBody": {
             "type": "object",
             "properties": {
@@ -297,8 +311,10 @@
         }
     },
     "securityDefinitions": {
-        "BasicAuth": {
-            "type": "basic"
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }

@@ -17,6 +17,7 @@ var (
 
 type Bike struct {
 	ID        int64            `json:"id"`
+	Name      string           `json:"name"`
 	Lat       *decimal.Decimal `json:"lat"`
 	Long      *decimal.Decimal `json:"long"`
 	Status    BikeStatus       `json:"status"`
@@ -58,6 +59,7 @@ type RentOrReturnRequestPayload struct {
 
 type BikeDTO struct {
 	ID               int64      `json:"id" example:"1"`
+	Name             string     `json:"name" example:"henry"`
 	Lat              string     `json:"lat" example:"50.119504"`
 	Long             string     `json:"long" example:"8.638137"`
 	Status           BikeStatus `json:"status" example:"rented"`

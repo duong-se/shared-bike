@@ -61,3 +61,7 @@ type UserDTO struct {
 	Username string `json:"username"`
 	Name     string `json:"name"`
 }
+
+type Credentials struct {
+	AccessToken string `json:"accessToken"`
+}

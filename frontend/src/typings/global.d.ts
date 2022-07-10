@@ -1,6 +1,7 @@
 export type Config = {
   appEnv: 'development' | 'production'
   baseUrl: string
+  googleMapApiKey: string
 }
 
 declare global {
@@ -8,5 +9,6 @@ declare global {
     sharedBike: {
       config: Config
     }
+    google: typeof google
   }
 }

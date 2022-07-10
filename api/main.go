@@ -6,10 +6,13 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"regexp"
 	"time"
 
+	"shared-bike/apperrors"
 	"shared-bike/customlogger"
 	docs "shared-bike/docs"
+	"shared-bike/domain"
 	customMiddleware "shared-bike/middleware"
 	"shared-bike/pkg/bike"
 	"shared-bike/pkg/user"
@@ -34,7 +37,9 @@ const defaultPort = "8080"
 // @contact.url                https://github.com/duong-se
 // @contact.email              duongpham@duck.com
 // @BasePath                   /api/v1
-// @securityDefinitions.basic  BasicAuth
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	godotenv.Load()
 	port := os.Getenv("PORT")
@@ -55,9 +60,9 @@ func main() {
 	contextLogger := customlogger.NewContextLogger(e.Logger)
 	e.Logger.SetPrefix("shared-bike")
 	e.Logger.SetLevel(log.INFO)
-	cookieSecret := os.Getenv("COOKIE_SECRET")
+	secret := os.Getenv("SECRET")
 	e.Use(
-		session.Middleware(sessions.NewCookieStore([]byte(cookieSecret))),
+		session.Middleware(sessions.NewCookieStore([]byte(secret))),
 		middleware.GzipWithConfig(middleware.GzipConfig{
 			Level: 5,
 		}),
@@ -66,8 +71,22 @@ func main() {
 		middleware.Logger(),
 		middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins:     []string{"http://localhost:3000"},
-			AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderXRequestID},
+			AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderXRequestID, echo.HeaderAuthorization},
 			AllowCredentials: true,
+		}),
+		middleware.JWTWithConfig(middleware.JWTConfig{
+			SigningKey: []byte(secret),
+			Claims:     &domain.Claims{},
+			ErrorHandlerWithContext: func(err error, c echo.Context) error {
+				c.Logger().Error("[JWTValidate] error", err)
+				return c.JSON(apperrors.GetStatusCode(apperrors.ErrUnauthorizeError), apperrors.ErrUnauthorizeError.Error())
+			},
+			TokenLookup: "header:" + echo.HeaderAuthorization,
+			Skipper: func(c echo.Context) bool {
+				requestPath := c.Request().URL.Path
+				c.Logger().Debug("request ========>", requestPath)
+				return requestPath == "/api/v1/users/login" || requestPath == "/api/v1/users/register" || requestPath == "/health" || regexp.MustCompile(`\/swagger\/[a-zA-Z0-9]+.[a-zA-Z0-9]+`).MatchString(requestPath)
+			},
 		}),
 	)
 	dbInstance, _ := db.DB()
@@ -89,7 +108,7 @@ func main() {
 	bikeRepo := bike.NewRepository(db)
 	bikeUseCase := bike.NewUseCase(e.Logger, bikeRepo, userRepo)
 	bikeHandler := bike.NewHandler(bikeUseCase)
-	bikeAPIs := root.Group("/bikes", customMiddleware.Authorize)
+	bikeAPIs := root.Group("/bikes")
 	bikeAPIs.GET("", bikeHandler.GetAllBike)
 	bikeAPIs.PATCH("/:id/rent", bikeHandler.Rent)
 	bikeAPIs.PATCH("/:id/return", bikeHandler.Return)

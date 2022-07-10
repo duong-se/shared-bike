@@ -9,6 +9,7 @@ import (
 	"shared-bike/domain"
 	"shared-bike/middleware"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
 
@@ -65,7 +66,9 @@ func (h *handlerImpl) Rent(c echo.Context) error {
 		c.Logger().Error(fmt.Sprintf("[BikeHandler.Rent] invalid bike %s", bikeIDStr), err)
 		return c.JSON(http.StatusBadRequest, "invalid bike id")
 	}
-	userID := c.Get(middleware.UserIDKey).(int64)
+	user := c.Get(middleware.UserKey).(*jwt.Token)
+	claims := user.Claims.(*domain.Claims)
+	userID := claims.ID
 	request := domain.RentOrReturnRequestPayload{
 		ID:     bikeID,
 		UserID: userID,
@@ -102,7 +105,9 @@ func (h *handlerImpl) Return(c echo.Context) error {
 		c.Logger().Error(fmt.Sprintf("[BikeHandler.Return] invalid bike id %s", bikeIDStr), err)
 		return c.JSON(http.StatusBadRequest, "invalid bike id")
 	}
-	userID := c.Get(middleware.UserIDKey).(int64)
+	user := c.Get(middleware.UserKey).(*jwt.Token)
+	claims := user.Claims.(*domain.Claims)
+	userID := claims.ID
 	request := domain.RentOrReturnRequestPayload{
 		ID:     bikeID,
 		UserID: userID,

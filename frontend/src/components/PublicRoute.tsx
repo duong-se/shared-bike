@@ -1,11 +1,10 @@
 import { Navigate, useLocation } from 'react-router-dom'
-import { useCookies } from 'react-cookie'
+import { tokenKey } from '../hooks/AuthProvider';
 
 export const PublicRoute = ({ children }: { children: JSX.Element }) => {
-  const [cookies] = useCookies<"session">();
-  console.log({ cookies })
   let location = useLocation();
-  if (cookies.session) {
+  const token = localStorage.getItem(tokenKey)
+  if (token) {
     return <Navigate to="/dashboard" state={{ from: location }} replace />;
   }
   return children;

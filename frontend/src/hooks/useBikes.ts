@@ -1,11 +1,12 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { tokenKey } from "./AuthProvider"
 
 export enum BikeStatus {
   RENTED = "rented",
   AVAILABLE = "available"
 }
 
-type Bike = {
+export type Bike = {
   id: number
   lat: string
   long: string
@@ -20,27 +21,31 @@ export const useBikes = () => {
   const [isFetchLoading, setLoading] = useState<boolean>(true)
   const [isActionLoading, setActionLoading] = useState<boolean>(true)
   const [bikes, setBikes] = useState<Bike[]>([])
-  const fetchAllBikes = async () => {
+  const token = localStorage.getItem(tokenKey)
+  useEffect(() => {
     setLoading(true)
     const getBikesUrl = `${window.sharedBike.config.baseUrl}/bikes`
     fetch(getBikesUrl, {
       method: "GET",
-      credentials: "include",
       headers: {
         "Accept": "application/json",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": token as string,
       },
-    }).then(async (resp) => {
-      setLoading(false)
+    }).then(async resp => {
+      const data = await resp.json()
       if (resp.ok) {
-        const bikes = await resp.json()
-        return setBikes(bikes)
+        return data
       }
+      throw new Error(data)
+    }).then(async (result) => {
+      setBikes(result)
     }).catch((error) => {
-      setLoading(false)
       setError(error)
+    }).finally(() => {
+      setLoading(false)
     })
-  }
+  }, [token])
 
   const updateListBike = async (bikeId: number, resp: Bike) => {
     const filteredBikes = bikes.filter((item) => item.id !== bikeId)
@@ -52,10 +57,10 @@ export const useBikes = () => {
     const returnBikeUrl = `${window.sharedBike.config.baseUrl}/bikes/${bikeId}/return`
     fetch(returnBikeUrl, {
       method: "PATCH",
-      credentials: "include",
       headers: {
         "Accept": "application/json",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": token as string,
       },
     }).then(async (resp) => {
       setActionLoading(false)
@@ -74,10 +79,10 @@ export const useBikes = () => {
     const returnBikeUrl = `${window.sharedBike.config.baseUrl}/bikes/${bikeId}/rent`
     fetch(returnBikeUrl, {
       method: "PATCH",
-      credentials: "include",
       headers: {
         "Accept": "application/json",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": token as string,
       },
     }).then(async (resp) => {
       setActionLoading(false)
@@ -92,7 +97,6 @@ export const useBikes = () => {
   }
 
   return {
-    fetchAllBikes,
     returnBike,
     rentBike,
     error,

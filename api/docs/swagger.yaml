@@ -24,6 +24,11 @@ definitions:
         example: bob
         type: string
     type: object
+  domain.Credentials:
+    properties:
+      token:
+        type: string
+    type: object
   domain.LoginBody:
     properties:
       password:
@@ -155,8 +160,10 @@ paths:
       produces:
       - application/json
       responses:
-        "204":
-          description: ""
+        "200":
+          description: success
+          schema:
+            $ref: '#/definitions/domain.Credentials'
         "400":
           description: invalid body
           schema:
@@ -187,8 +194,10 @@ paths:
       produces:
       - application/json
       responses:
-        "204":
-          description: ""
+        "200":
+          description: success
+          schema:
+            $ref: '#/definitions/domain.Credentials'
         "400":
           description: invalid body
           schema:
@@ -201,6 +210,8 @@ paths:
       tags:
       - users
 securityDefinitions:
-  BasicAuth:
-    type: basic
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

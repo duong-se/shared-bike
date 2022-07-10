@@ -141,7 +141,7 @@ func (s *BikeHandlerTestSuite) TestRent_Success() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	c.Set(middleware.UserIDKey, int64(1))
+	c.Set(middleware.UserKey, domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"})
 	respBody := `{"id":1,"lat":"50.119504","long":"8.638137","status":"rented","userId":1,"nameOfRenter":"mockName","usernameOfRenter":"mockUserName"}
 `
 	c.SetPath("/bikes/:id/rent")
@@ -166,7 +166,7 @@ func (s *BikeHandlerTestSuite) TestRent_FailedUseCase() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	c.Set(middleware.UserIDKey, int64(1))
+	c.Set(middleware.UserKey, domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"})
 	respBody := `"bike not found"
 `
 	c.SetPath("/bikes/:id/rent")
@@ -182,7 +182,7 @@ func (s *BikeHandlerTestSuite) TestRent_FailedParams() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	c.Set(middleware.UserIDKey, int64(1))
+	c.Set(middleware.UserKey, domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"})
 	respBody := `"invalid bike id"
 `
 	c.SetPath("/bikes/:id/rent")
@@ -215,7 +215,7 @@ func (s *BikeHandlerTestSuite) TestReturn_Success() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	c.Set(middleware.UserIDKey, int64(1))
+	c.Set(middleware.UserKey, domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"})
 	respBody := `{"id":1,"lat":"50.119504","long":"8.638137","status":"available","userId":0,"nameOfRenter":"","usernameOfRenter":""}
 `
 	c.SetPath("/bikes/:id/return")
@@ -240,7 +240,7 @@ func (s *BikeHandlerTestSuite) TestReturn_FailedUseCase() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	c.Set(middleware.UserIDKey, int64(1))
+	c.Set(middleware.UserKey, domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"})
 	respBody := `"bike not found"
 `
 	c.SetPath("/bikes/:id/return")
@@ -256,7 +256,7 @@ func (s *BikeHandlerTestSuite) TestReturn_FailedParams() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	c.Set(middleware.UserIDKey, int64(1))
+	c.Set(middleware.UserKey, domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"})
 	respBody := `"invalid bike id"
 `
 	c.SetPath("/bikes/:id/return")

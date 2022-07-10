@@ -1,10 +1,18 @@
-import { createContext, useCallback, useContext, useState } from "react"
-import { useCookies } from 'react-cookie'
+import { createContext, useCallback, useContext, useEffect, useState } from "react"
+import jwtDecode from "jwt-decode";
+
+type User = {
+  id: number
+  name: string
+  username: string
+}
 
 type AuthContextType = {
   login: (username: string, password: string, callback: VoidFunction) => void;
   logout: (callback: VoidFunction) => void;
   error?: string
+  isLoading: boolean
+  user?: User
 }
 
 const AuthContext = createContext<AuthContextType>(null!);
@@ -13,10 +21,24 @@ export const useAuth = () => {
   return useContext(AuthContext);
 }
 
+export const tokenKey = "accessToken";
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [, setCookie] = useCookies()
   const [error, setError] = useState<string| undefined>(undefined)
+  const [isLoading, setIsLoading] = useState(false)
+  const [user, setUser] = useState<User|undefined>()
+  const token = localStorage.getItem(tokenKey);
+  const decodeToken = useCallback((value: string | null) => {
+    if (value) {
+      const decoded = jwtDecode<User>(value);
+      setUser(decoded);
+    }
+  }, [])
+  useEffect(() => {
+    decodeToken(token)
+  }, [decodeToken, token])
   const login = useCallback(async (username: string, password: string, callback: VoidFunction) => {
+    setIsLoading(true)
     const loginUrl = `${window.sharedBike.config.baseUrl}/users/login`
     fetch(loginUrl, {
       method: "POST",
@@ -29,15 +51,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         username,
         password,
       })
-    }).then((resp) => {
-      resp.status === 204 ? callback() : setError("Login failed")
-    }).catch((error) => setError(error))
-  }, [])
+    }).then(async (resp) => {
+      const data = await resp.json()
+      if(resp.ok) {
+        return data
+      }
+      throw new Error(data)
+    }).then(async (result) => {
+      const { accessToken } = result
+      localStorage.setItem(tokenKey, accessToken)
+      decodeToken(accessToken)
+      callback()
+    }).catch((error) => {
+      setError(error.message)
+    }).finally(() => setIsLoading(false))
+  }, [decodeToken])
 
   const logout = useCallback(() => {
-   setCookie('session', null)
-  }, [setCookie])
+    localStorage.removeItem(tokenKey)
+  }, [])
 
 
-  return <AuthContext.Provider value={{ login, logout, error }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ login, logout, error, isLoading, user }}>{children}</AuthContext.Provider>;
 }

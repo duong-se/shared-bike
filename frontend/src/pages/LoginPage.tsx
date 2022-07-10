@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { LoginForm } from "../components/LoginForm";
 import { RegisterForm } from "../components/RegisterForm";
 import {ReactComponent as BikeLogo} from './logo.svg';
@@ -40,4 +40,4 @@ export const LoginPage: React.FC = () => {
   );
 }
 
-export default LoginPage
+export default memo(LoginPage)
