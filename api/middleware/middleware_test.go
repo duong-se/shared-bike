@@ -35,8 +35,7 @@ func (s *BikeHandlerTestSuite) TestAuthorized_Failed() {
 	c := s.echo.NewContext(req, rec)
 	s.echo.ServeHTTP(rec, req)
 	c.SetPath("/")
-	respBody := `"body output"
-`
+	respBody := "body output"
 	s.Equal(http.StatusOK, rec.Code)
 	s.Equal(respBody, rec.Body.String())
 }

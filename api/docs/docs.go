@@ -261,6 +261,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": "8.638137"
                 },
+                "name": {
+                    "type": "string",
+                    "example": "henry"
+                },
                 "nameOfRenter": {
                     "type": "string",
                     "example": "Bob"
@@ -282,7 +286,7 @@ const docTemplate = `{
         "domain.Credentials": {
             "type": "object",
             "properties": {
-                "token": {
+                "accessToken": {
                     "type": "string"
                 }
             }

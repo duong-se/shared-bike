@@ -10,7 +10,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/suite"
 )
@@ -53,40 +52,10 @@ func (s *UserHandlerTestSuite) TestLogin_Success() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	c.Set("_session_store", sessions.NewCookieStore([]byte("mockSecret")))
-	respBody := `null
-`
 	c.SetPath("/users/login")
 	s.NoError(s.handlerImpl.Login(c))
-	s.Equal(http.StatusNoContent, rec.Code)
-	s.Equal(respBody, rec.Body.String())
-}
-
-func (s *UserHandlerTestSuite) TestLogin_SessionInitError() {
-	var (
-		mockContext = context.TODO()
-		mockBody    = domain.LoginBody{
-			Username: "testUsername",
-			Password: "testPassword",
-		}
-		mockResult = domain.UserDTO{
-			ID:       1,
-			Username: "testUsername",
-			Name:     "testName",
-		}
-		loginBody = `{"username":"testUsername","password":"testPassword"}`
-	)
-	s.mockUseCase.On("Login", mockContext, mockBody).Return(mockResult, nil)
-	req := httptest.NewRequest(http.MethodPost, "/users/login", strings.NewReader(loginBody))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec := httptest.NewRecorder()
-	c := s.echo.NewContext(req, rec)
-	respBody := `"internal server error"
-`
-	c.SetPath("/users/login")
-	s.NoError(s.handlerImpl.Login(c))
-	s.Equal(http.StatusInternalServerError, rec.Code)
-	s.Equal(respBody, rec.Body.String())
+	s.Equal(http.StatusOK, rec.Code)
+	s.Contains(rec.Body.String(), "accessToken")
 }
 
 func (s *UserHandlerTestSuite) TestLogin_InvalidBody() {
@@ -158,41 +127,10 @@ func (s *UserHandlerTestSuite) TestRegister_Success() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	c.Set("_session_store", sessions.NewCookieStore([]byte("mockSecret")))
-	respBody := `null
-`
 	c.SetPath("/users/register")
 	s.NoError(s.handlerImpl.Register(c))
 	s.Equal(http.StatusCreated, rec.Code)
-	s.Equal(respBody, rec.Body.String())
-}
-
-func (s *UserHandlerTestSuite) TestRegister_SessionError() {
-	var (
-		mockContext = context.TODO()
-		mockBody    = domain.RegisterBody{
-			Username: "testUsername",
-			Password: "testPassword",
-			Name:     "mockName",
-		}
-		mockResult = domain.UserDTO{
-			ID:       1,
-			Username: "testUsername",
-			Name:     "testName",
-		}
-		registerBody = `{"username":"testUsername","password":"testPassword", "name":"mockName"}`
-	)
-	s.mockUseCase.On("Register", mockContext, mockBody).Return(mockResult, nil)
-	req := httptest.NewRequest(http.MethodPost, "/users/register", strings.NewReader(registerBody))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec := httptest.NewRecorder()
-	c := s.echo.NewContext(req, rec)
-	respBody := `"internal server error"
-`
-	c.SetPath("/users/register")
-	s.NoError(s.handlerImpl.Register(c))
-	s.Equal(http.StatusInternalServerError, rec.Code)
-	s.Equal(respBody, rec.Body.String())
+	s.Contains(rec.Body.String(), "accessToken")
 }
 
 func (s *UserHandlerTestSuite) TestRegister_InvalidBody() {

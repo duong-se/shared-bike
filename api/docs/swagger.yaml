@@ -11,6 +11,9 @@ definitions:
       long:
         example: "8.638137"
         type: string
+      name:
+        example: henry
+        type: string
       nameOfRenter:
         example: Bob
         type: string
@@ -26,7 +29,7 @@ definitions:
     type: object
   domain.Credentials:
     properties:
-      token:
+      accessToken:
         type: string
     type: object
   domain.LoginBody:

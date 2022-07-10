@@ -12,8 +12,7 @@ import (
 	"shared-bike/middleware"
 	"shared-bike/pkg/bike/mocks"
 
-	"github.com/gorilla/sessions"
-	"github.com/labstack/echo-contrib/session"
+	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/suite"
 	"gorm.io/gorm"
@@ -30,7 +29,6 @@ func (s *BikeHandlerTestSuite) SetupTest() {
 	mockUseCase := &mocks.IUseCase{}
 	s.mockUseCase = mockUseCase
 	e := echo.New()
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte("mockSecret"))))
 	s.echo = e
 	handler := NewHandler(mockUseCase)
 	s.handlerImpl = handler
@@ -61,6 +59,7 @@ func (s *BikeHandlerTestSuite) TestGetAll_Success() {
 				ID:               1,
 				Lat:              "50.119504",
 				Long:             "8.638137",
+				Name:             "testName",
 				Status:           domain.BikeStatusAvailable,
 				UserID:           0,
 				NameOfRenter:     "",
@@ -70,6 +69,7 @@ func (s *BikeHandlerTestSuite) TestGetAll_Success() {
 				ID:               1,
 				Lat:              "50.119229",
 				Long:             "8.640020",
+				Name:             "testName",
 				Status:           domain.BikeStatusRented,
 				UserID:           mockUserID,
 				NameOfRenter:     mockUserResult[0].Name,
@@ -79,6 +79,7 @@ func (s *BikeHandlerTestSuite) TestGetAll_Success() {
 				ID:               1,
 				Lat:              "50.120452",
 				Long:             "8.650507",
+				Name:             "testName",
 				Status:           domain.BikeStatusAvailable,
 				UserID:           0,
 				NameOfRenter:     "",
@@ -91,7 +92,7 @@ func (s *BikeHandlerTestSuite) TestGetAll_Success() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	respBody := `[{"id":1,"lat":"50.119504","long":"8.638137","status":"available","userId":0,"nameOfRenter":"","usernameOfRenter":""},{"id":1,"lat":"50.119229","long":"8.640020","status":"rented","userId":1,"nameOfRenter":"testName","usernameOfRenter":"testUsername"},{"id":1,"lat":"50.120452","long":"8.650507","status":"available","userId":0,"nameOfRenter":"","usernameOfRenter":""}]
+	respBody := `[{"id":1,"name":"testName","lat":"50.119504","long":"8.638137","status":"available","userId":0,"nameOfRenter":"","usernameOfRenter":""},{"id":1,"name":"testName","lat":"50.119229","long":"8.640020","status":"rented","userId":1,"nameOfRenter":"testName","usernameOfRenter":"testUsername"},{"id":1,"name":"testName","lat":"50.120452","long":"8.650507","status":"available","userId":0,"nameOfRenter":"","usernameOfRenter":""}]
 `
 	c.SetPath("/bikes")
 	s.NoError(s.handlerImpl.GetAllBike(c))
@@ -108,6 +109,10 @@ func (s *BikeHandlerTestSuite) TestGetAll_Failed() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
+	c.Set(middleware.UserKey, &jwt.Token{
+		Valid:  true,
+		Claims: &domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"},
+	})
 	respBody := `"internal server error"
 `
 	c.SetPath("/bikes")
@@ -124,6 +129,7 @@ func (s *BikeHandlerTestSuite) TestRent_Success() {
 		username    = "mockUserName"
 		mockResult  = domain.BikeDTO{
 			ID:               1,
+			Name:             "testName",
 			Lat:              "50.119504",
 			Long:             "8.638137",
 			Status:           domain.BikeStatusRented,
@@ -141,8 +147,11 @@ func (s *BikeHandlerTestSuite) TestRent_Success() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	c.Set(middleware.UserKey, domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"})
-	respBody := `{"id":1,"lat":"50.119504","long":"8.638137","status":"rented","userId":1,"nameOfRenter":"mockName","usernameOfRenter":"mockUserName"}
+	c.Set(middleware.UserKey, &jwt.Token{
+		Valid:  true,
+		Claims: &domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"},
+	})
+	respBody := `{"id":1,"name":"testName","lat":"50.119504","long":"8.638137","status":"rented","userId":1,"nameOfRenter":"mockName","usernameOfRenter":"mockUserName"}
 `
 	c.SetPath("/bikes/:id/rent")
 	c.SetParamNames("id")
@@ -166,7 +175,10 @@ func (s *BikeHandlerTestSuite) TestRent_FailedUseCase() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	c.Set(middleware.UserKey, domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"})
+	c.Set(middleware.UserKey, &jwt.Token{
+		Valid:  true,
+		Claims: &domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"},
+	})
 	respBody := `"bike not found"
 `
 	c.SetPath("/bikes/:id/rent")
@@ -182,7 +194,10 @@ func (s *BikeHandlerTestSuite) TestRent_FailedParams() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	c.Set(middleware.UserKey, domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"})
+	c.Set(middleware.UserKey, &jwt.Token{
+		Valid:  true,
+		Claims: &domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"},
+	})
 	respBody := `"invalid bike id"
 `
 	c.SetPath("/bikes/:id/rent")
@@ -215,8 +230,11 @@ func (s *BikeHandlerTestSuite) TestReturn_Success() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	c.Set(middleware.UserKey, domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"})
-	respBody := `{"id":1,"lat":"50.119504","long":"8.638137","status":"available","userId":0,"nameOfRenter":"","usernameOfRenter":""}
+	c.Set(middleware.UserKey, &jwt.Token{
+		Valid:  true,
+		Claims: &domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"},
+	})
+	respBody := `{"id":1,"name":"","lat":"50.119504","long":"8.638137","status":"available","userId":0,"nameOfRenter":"","usernameOfRenter":""}
 `
 	c.SetPath("/bikes/:id/return")
 	c.SetParamNames("id")
@@ -240,7 +258,10 @@ func (s *BikeHandlerTestSuite) TestReturn_FailedUseCase() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	c.Set(middleware.UserKey, domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"})
+	c.Set(middleware.UserKey, &jwt.Token{
+		Valid:  true,
+		Claims: &domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"},
+	})
 	respBody := `"bike not found"
 `
 	c.SetPath("/bikes/:id/return")
@@ -256,7 +277,10 @@ func (s *BikeHandlerTestSuite) TestReturn_FailedParams() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	c.Set(middleware.UserKey, domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"})
+	c.Set(middleware.UserKey, &jwt.Token{
+		Valid:  true,
+		Claims: &domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"},
+	})
 	respBody := `"invalid bike id"
 `
 	c.SetPath("/bikes/:id/return")

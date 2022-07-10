@@ -2,6 +2,7 @@
 -- SQL in this section is executed when the migration is applied.
 CREATE TABLE IF NOT EXISTS `bike` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `name` varchar(128) NOT NULL DEFAULT '',
   `lat` decimal(8,6) DEFAULT NULL,
   `long` decimal(9,6) DEFAULT NULL,
   `status` varchar(128) NOT NULL DEFAULT '',

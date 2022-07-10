@@ -136,6 +136,7 @@ func (u *useCaseImpl) Rent(ctx context.Context, body domain.RentOrReturnRequestP
 	}
 	updatedBike := &domain.Bike{
 		ID:     currentBike.ID,
+		Name:   currentBike.Name,
 		Lat:    currentBike.Lat,
 		Long:   currentBike.Long,
 		Status: domain.BikeStatusRented,
@@ -180,6 +181,7 @@ func (u *useCaseImpl) Return(ctx context.Context, body domain.RentOrReturnReques
 
 	updatedBike := &domain.Bike{
 		ID:     currentBike.ID,
+		Name:   currentBike.Name,
 		Lat:    currentBike.Lat,
 		Long:   currentBike.Long,
 		Status: domain.BikeStatusAvailable,

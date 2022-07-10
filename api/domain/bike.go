@@ -30,6 +30,7 @@ type Bike struct {
 func (b *Bike) ToDTO() BikeDTO {
 	bikeDTO := BikeDTO{
 		ID:     b.ID,
+		Name:   b.Name,
 		Lat:    b.Lat.String(),
 		Long:   b.Long.String(),
 		Status: b.Status,
