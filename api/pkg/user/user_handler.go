@@ -51,7 +51,7 @@ func (h *handlerImpl) Login(c echo.Context) error {
 	c.Logger().Info("[UserHandler.Login] login success")
 	token, err := h.signToken(user, 300)
 	if err != nil {
-		c.Logger().Error("[UserHandler.Login] set session error", err)
+		c.Logger().Error("[UserHandler.Login] sign token error", err)
 		return c.JSON(http.StatusInternalServerError, "internal server error")
 	}
 	return c.JSON(http.StatusOK, domain.Credentials{AccessToken: token})
@@ -104,7 +104,7 @@ func (h *handlerImpl) Register(c echo.Context) error {
 	c.Logger().Info("[UserHandler.Register] register success")
 	token, err := h.signToken(user, 300)
 	if err != nil {
-		c.Logger().Error("[UserHandler.Register] set session error", err)
+		c.Logger().Error("[UserHandler.Register] sign token error", err)
 		return c.JSON(http.StatusInternalServerError, "internal server error")
 	}
 	return c.JSON(http.StatusCreated, domain.Credentials{AccessToken: token})

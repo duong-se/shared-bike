@@ -6,10 +6,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"regexp"
 	"time"
 
-	"shared-bike/apperrors"
 	"shared-bike/customlogger"
 	docs "shared-bike/docs"
 	"shared-bike/domain"
@@ -75,18 +73,11 @@ func main() {
 			AllowCredentials: true,
 		}),
 		middleware.JWTWithConfig(middleware.JWTConfig{
-			SigningKey: []byte(secret),
-			Claims:     &domain.Claims{},
-			ErrorHandlerWithContext: func(err error, c echo.Context) error {
-				c.Logger().Error("[JWTValidate] error", err)
-				return c.JSON(apperrors.GetStatusCode(apperrors.ErrUnauthorizeError), apperrors.ErrUnauthorizeError.Error())
-			},
-			TokenLookup: "header:" + echo.HeaderAuthorization,
-			Skipper: func(c echo.Context) bool {
-				requestPath := c.Request().URL.Path
-				c.Logger().Debug("request ========>", requestPath)
-				return requestPath == "/api/v1/users/login" || requestPath == "/api/v1/users/register" || requestPath == "/health" || regexp.MustCompile(`\/swagger\/[a-zA-Z0-9]+.[a-zA-Z0-9]+`).MatchString(requestPath)
-			},
+			SigningKey:              []byte(secret),
+			Claims:                  &domain.Claims{},
+			ErrorHandlerWithContext: customMiddleware.CustomJWTError,
+			TokenLookup:             "header:" + echo.HeaderAuthorization,
+			Skipper:                 customMiddleware.WhiteListAPI,
 		}),
 	)
 	dbInstance, _ := db.DB()

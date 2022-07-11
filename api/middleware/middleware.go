@@ -1,6 +1,9 @@
 package middleware
 
 import (
+	"regexp"
+	"shared-bike/apperrors"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -27,4 +30,15 @@ func AddLoggerContext(contextLogger CustomLogger) func(next echo.HandlerFunc) ec
 			return next(c)
 		}
 	}
+}
+
+func WhiteListAPI(c echo.Context) bool {
+	requestPath := c.Request().URL.Path
+	c.Logger().Debug("request ========>", requestPath)
+	return requestPath == "/api/v1/users/login" || requestPath == "/api/v1/users/register" || requestPath == "/health" || regexp.MustCompile(`\/swagger\/[a-zA-Z0-9]+.[a-zA-Z0-9]+`).MatchString(requestPath)
+}
+
+func CustomJWTError(err error, c echo.Context) error {
+	c.Logger().Error("[JWTValidate] error", err)
+	return c.JSON(apperrors.GetStatusCode(apperrors.ErrUnauthorizeError), apperrors.ErrUnauthorizeError.Error())
 }
