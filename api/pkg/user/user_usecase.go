@@ -44,6 +44,15 @@ func (u *useCaseImpl) Login(ctx context.Context, body domain.LoginBody) (domain.
 }
 
 func (u *useCaseImpl) Register(ctx context.Context, body domain.RegisterBody) (domain.UserDTO, error) {
+	existedUser, err := u.repository.GetByUsername(ctx, body.Username)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		u.logger.Error("[UserUseCase.Register] fetch user by username failed", err)
+		return domain.UserDTO{}, apperrors.ErrInternalServerError
+	}
+	if existedUser != nil {
+		u.logger.Info("[UserUseCase.Register] user already existed")
+		return domain.UserDTO{}, apperrors.ErrUserAlreadyExisted
+	}
 	u.logger.Info("[UserUseCase.Register] starting")
 	newUser := domain.User{
 		Username: body.Username,
@@ -51,7 +60,7 @@ func (u *useCaseImpl) Register(ctx context.Context, body domain.RegisterBody) (d
 	}
 	hashedPassword, _ := newUser.HashPassword(body.Password, bcrypt.DefaultCost)
 	newUser.Password = hashedPassword
-	err := u.repository.Create(ctx, &newUser)
+	err = u.repository.Create(ctx, &newUser)
 	if err != nil {
 		u.logger.Error("[UserUseCase.Register] register failed", err)
 		return domain.UserDTO{}, apperrors.ErrInternalServerError

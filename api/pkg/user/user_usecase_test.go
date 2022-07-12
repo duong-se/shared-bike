@@ -115,6 +115,7 @@ func (s *UserUseCaseTestSuite) TestRegister_Success() {
 		Username: "testUsername",
 		Name:     "testName",
 	}
+	s.mockRepository.On("GetByUsername", mockContext, mockPayload.Username).Return(nil, gorm.ErrRecordNotFound)
 	s.mockRepository.On("Create", mockContext, mock.Anything).Return(nil)
 	actual, err := s.useCaseImpl.Register(context.TODO(), mockPayload)
 	s.Nil(err)
@@ -128,6 +129,45 @@ func (s *UserUseCaseTestSuite) TestRegister_Failed() {
 		Password: "testPassword",
 		Name:     "testName",
 	}
+	s.mockRepository.On("GetByUsername", mockContext, mockPayload.Username).Return(nil, gorm.ErrRecordNotFound)
+	s.mockRepository.On("Create", mockContext, mock.Anything).Return(gorm.ErrInvalidDB)
+	actual, err := s.useCaseImpl.Register(context.TODO(), mockPayload)
+	s.Equal(apperrors.ErrInternalServerError, err)
+	s.Equal(domain.UserDTO{}, actual)
+}
+
+func (s *UserUseCaseTestSuite) TestRegister_FailedByExistedUser() {
+	mockContext := context.TODO()
+	mockPayload := domain.RegisterBody{
+		Username: "testUsername",
+		Password: "testPassword",
+		Name:     "testName",
+	}
+	mockTime := time.Time{}
+	mockUserResult := domain.User{
+		ID:        1,
+		Username:  "testUsername",
+		Password:  "$2a$10$Mjx4fmq9ykGxlqlT/l9yGuojZ0FLV8QmrDhGwxmdE3QdkaXQgCcMG",
+		Name:      "testName",
+		CreatedAt: mockTime,
+		UpdatedAt: mockTime,
+		DeletedAt: gorm.DeletedAt{Valid: false},
+	}
+	s.mockRepository.On("GetByUsername", mockContext, mockPayload.Username).Return(&mockUserResult, nil)
+	s.mockRepository.On("Create", mockContext, mock.Anything).Return(gorm.ErrInvalidDB)
+	actual, err := s.useCaseImpl.Register(context.TODO(), mockPayload)
+	s.Equal(apperrors.ErrUserAlreadyExisted, err)
+	s.Equal(domain.UserDTO{}, actual)
+}
+
+func (s *UserUseCaseTestSuite) TestRegister_FailedByGeneralError() {
+	mockContext := context.TODO()
+	mockPayload := domain.RegisterBody{
+		Username: "testUsername",
+		Password: "testPassword",
+		Name:     "testName",
+	}
+	s.mockRepository.On("GetByUsername", mockContext, mockPayload.Username).Return(nil, gorm.ErrDryRunModeUnsupported)
 	s.mockRepository.On("Create", mockContext, mock.Anything).Return(gorm.ErrInvalidDB)
 	actual, err := s.useCaseImpl.Register(context.TODO(), mockPayload)
 	s.Equal(apperrors.ErrInternalServerError, err)

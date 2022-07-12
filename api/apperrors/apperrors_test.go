@@ -66,3 +66,8 @@ func (s *AppErrorsTestSuite) TestGetStatusCode_ReturnFallback() {
 	err := errors.New("mock")
 	s.Equal(http.StatusInternalServerError, GetStatusCode(err))
 }
+
+func (s *AppErrorsTestSuite) TestGetStatusCode_ErrUserAlreadyExisted() {
+	err := ErrUserAlreadyExisted
+	s.Equal(http.StatusBadRequest, GetStatusCode(err))
+}

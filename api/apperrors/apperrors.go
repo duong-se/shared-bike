@@ -15,6 +15,7 @@ var (
 	ErrBikeNotYours        = errors.New("cannot return because bike is not yours")
 	ErrUserLoginNotFound   = errors.New("username or password is wrong")
 	ErrUserNotExisted      = errors.New("user not exists or inactive")
+	ErrUserAlreadyExisted  = errors.New("user already existed")
 )
 
 func GetStatusCode(err error) int {
@@ -36,6 +37,8 @@ func GetStatusCode(err error) int {
 	case ErrBikeAvailable:
 		return http.StatusBadRequest
 	case ErrUserNotExisted:
+		return http.StatusBadRequest
+	case ErrUserAlreadyExisted:
 		return http.StatusBadRequest
 	case ErrUserLoginNotFound:
 		return http.StatusNotFound
