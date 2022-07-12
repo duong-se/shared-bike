@@ -1,11 +1,14 @@
-import { memo, useCallback, useEffect } from 'react';
+import { memo, useEffect } from 'react';
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
-import { useBikes, Bike, BikeStatus } from '../hooks/useBikes'
 import { useMap } from '../hooks/useMap';
 import { useAuth } from '../hooks/AuthProvider';
 import { Spinner } from '../components/Spinner';
+import { Bike, BikeStatus, RentBikeVariables, ReturnBikeVariables } from '../typings/types';
+import { MutateOptions, QueryClient, useQueryClient } from 'react-query';
+import { AlertError } from '../components/AlertError';
+import { useBikes, useRentBike, useReturnBike } from '../hooks/useBikes';
 
-function customIcon(color: string) {
+export const customIcon = (color: string) => {
   return {
     path: 'M 0,0 C -2,-20 -10,-22 -10,-30 A 10,10 0 1,1 10,-30 C 10,-22 2,-20 0,0 z M -2,-30 a 2,2 0 1,1 4,0 2,2 0 1,1 -4,0',
     fillColor: color,
@@ -16,10 +19,10 @@ function customIcon(color: string) {
   }
 }
 
-const availableColor = '#2ecc71'
-const rentedColor = '#34495e'
+export const availableColor = '#2ecc71'
+export const rentedColor = '#34495e'
 
-const contentMap = {
+export const contentMap = {
   [BikeStatus.AVAILABLE]: {
     icon: customIcon(availableColor),
     renderButton: (bike: Bike) => {
@@ -78,9 +81,9 @@ const contentMap = {
   },
 }
 
-const renderCommonContent = (bike: Bike) => {
+export const renderCommonContent = (bike: Bike) => {
   return `
-    <h1 class="text-2xl">Bike &raquo;${bike.id}&laquo;</h1>
+    <h1 class="text-2xl">Bike &raquo;${bike.name}&laquo;</h1>
     <h2 class="font-light text-lg">This bike for rent</h2>
     <div class="container mx-2">
       <ol class="list-decimal py-2 px-4">
@@ -92,10 +95,10 @@ const renderCommonContent = (bike: Bike) => {
   `
 }
 
-const renderUserHasBikeCase = (
+export const renderUserHasBikeCase = (
   bikes: Array<Bike>,
   bikeOfUser: Bike,
-  handleReturnBike: (bikeId: number, infoWindow: google.maps.InfoWindow) => (this: HTMLElement, ev: MouseEvent) => any,
+  returnBikeMutate: (variables: ReturnBikeVariables, options?: MutateOptions<Bike, unknown, ReturnBikeVariables, unknown> | undefined) => void,
   map?: google.maps.Map,
 ): Array<google.maps.Marker> => {
   if (!map) {
@@ -122,28 +125,40 @@ const renderUserHasBikeCase = (
       </div>
     `
     infoWindow.setContent(popUpContent)
-    marker.addListener("click", () => {
-      infoWindow.open({
-        anchor: marker,
-        map,
-        shouldFocus: false
-      });
-    });
+    marker.addListener("click", handleMarkerCallback(infoWindow, marker, map));
     if (isUserBike) {
-      infoWindow.addListener('domready', () => {
-        const button = document.getElementById(`bike-action-${bike.id}`)
-        if (button) {
-          button?.addEventListener('click', handleReturnBike(bike.id, infoWindow))
-        }
-      })
+      infoWindow.addListener('domready', handlePopUpButtonCallback(returnBikeMutate, bike, infoWindow))
     }
     return marker
   })
 }
 
-const renderUserHasNoBikeCase = (
+export const handlePopUpButtonCallback = (
+  fn: (variables: ReturnBikeVariables | RentBikeVariables, options?: MutateOptions<Bike, unknown, ReturnBikeVariables | RentBikeVariables, unknown> | undefined) => void,
+  bike: Bike,
+  infoWindow: google.maps.InfoWindow,
+) => () => {
+  const button = document.getElementById(`bike-action-${bike.id}`)
+  if (button) {
+    button?.addEventListener('click', () => {
+      fn({ bikeId: bike.id })
+      infoWindow.close()
+    })
+  }
+}
+
+export const handleMarkerCallback = (infoWindow: google.maps.InfoWindow, marker: google.maps.Marker, map: google.maps.Map) => () => {
+  infoWindow.open({
+    anchor: marker,
+    map,
+    shouldFocus: false
+  });
+}
+
+
+export const renderUserHasNoBikeCase = (
   bikes: Array<Bike>,
-  handleRentBike: (bikeId: number, infoWindow: google.maps.InfoWindow) => (this: HTMLElement, ev: MouseEvent) => any,
+  rentBikeMutate: (variables: RentBikeVariables, options?: MutateOptions<Bike, unknown, RentBikeVariables, unknown> | undefined) => void,
   map?: google.maps.Map,
 ): Array<google.maps.Marker> => {
   if (!map) {
@@ -166,55 +181,67 @@ const renderUserHasNoBikeCase = (
     const infoWindow = new google.maps.InfoWindow({
       content: popUpContent,
     });
-    marker.addListener("click", () => {
-      infoWindow.open({
-        anchor: marker,
-        map,
-        shouldFocus: false
-      });
-    });
+    marker.addListener("click", handleMarkerCallback(infoWindow, marker, map));
     if (bike.status === BikeStatus.AVAILABLE) {
-      infoWindow.addListener('domready', () => {
-        const button = document.getElementById(`bike-action-${bike.id}`)
-        if (button) {
-          button?.addEventListener('click', handleRentBike(bike.id, infoWindow))
-        }
-      })
+      infoWindow.addListener('domready', handlePopUpButtonCallback(rentBikeMutate, bike, infoWindow))
     }
     return marker
   })
 }
 
+export const onRentOrReturnSuccess = (queryClient: QueryClient) => (data: Bike) => {
+  const currentBikes = queryClient.getQueryData<Bike[]>(['bikes'])
+  if (currentBikes) {
+    const filteredBikes = currentBikes.filter((bike) => bike.id !== data.id)
+    const newBikes = [...filteredBikes, data]
+    queryClient.setQueryData(['bikes'], newBikes)
+  }
+}
 
 export const BikeMapPage: React.FC = () => {
-  const { rentBike, returnBike, bikes, isFetchLoading } = useBikes()
   const { user } = useAuth()
+  const queryClient = useQueryClient()
+  const {
+    data: bikes,
+    isLoading: isFetchBikesLoading,
+    isError: isFetchBikesError,
+    error: fetchBikesError
+  } = useBikes()
+  const {
+    mutate: rentBikeMutate,
+  } = useRentBike({
+    onSuccess: onRentOrReturnSuccess(queryClient)
+  })
+  const {
+    mutate: returnBikeMutate,
+  } = useReturnBike({
+    onSuccess: onRentOrReturnSuccess(queryClient)
+  })
   const centerPosition = new google.maps.LatLng(50.119504, 8.638137)
   const { map, mapRef } = useMap(centerPosition)
-  const handleRentBike = useCallback((bikeId: number,  infoWindow: google.maps.InfoWindow) => function (this: HTMLElement, ev: MouseEvent): any {
-    infoWindow.close()
-    rentBike(bikeId)
-  }, [rentBike])
-  const handleReturnBike = useCallback((bikeId: number, infoWindow: google.maps.InfoWindow) => function (this: HTMLElement, ev: MouseEvent): any {
-    infoWindow.close()
-    returnBike(bikeId)
-  }, [returnBike])
+
   useEffect(() => {
-    const userBike = bikes.find((item) => item.userId === user?.id)
-    if (userBike) {
-      const markers = renderUserHasBikeCase(bikes, userBike, handleReturnBike, map)
+    if (bikes) {
+      const userBike = bikes.find((item) => item.userId === user?.id)
+      if (userBike) {
+        const markers = renderUserHasBikeCase(bikes, userBike, returnBikeMutate, map)
+        new MarkerClusterer({ markers, map });
+        return
+      }
+      const markers = renderUserHasNoBikeCase(bikes, rentBikeMutate, map)
       new MarkerClusterer({ markers, map });
       return
     }
-    const markers = renderUserHasNoBikeCase(bikes, handleRentBike, map)
-    new MarkerClusterer({ markers, map });
-  }, [map, bikes, handleRentBike, user?.id, handleReturnBike])
+  }, [map, bikes, user?.id, user, rentBikeMutate, returnBikeMutate])
 
-  if (isFetchLoading) {
+  if (isFetchBikesLoading) {
     return <Spinner />
   }
+  if (isFetchBikesError) {
+    return <AlertError error={fetchBikesError as string} />
+  }
   return (
-    <div style={{ height: '100vh' }} ref={mapRef}></div>
+    <div data-testid="map-container" style={{ height: '100vh' }} ref={mapRef}></div>
   );
 }
 

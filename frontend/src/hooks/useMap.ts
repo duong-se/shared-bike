@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 
 export type UseMapReturn = {
   mapRef: (node: HTMLDivElement | null) => void
-  map?:google.maps.Map
+  map?: google.maps.Map
 }
 
 export const useMap = (position: google.maps.LatLng): UseMapReturn => {

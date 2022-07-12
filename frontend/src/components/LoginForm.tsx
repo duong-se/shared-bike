@@ -1,30 +1,66 @@
 import React from "react"
-import { useNavigate } from 'react-router-dom'
+import { NavigateFunction, useNavigate } from "react-router-dom"
+import jwtDecode from "jwt-decode"
+import cx from "classnames"
+import {
+  useFormik,
+} from 'formik';
+import * as Yup from 'yup';
 import { useAuth } from "../hooks/AuthProvider"
-import classNames from 'classnames'
+import { LoginResponse, User } from "../typings/types"
 import { Input } from "./Input";
+import { tokenKey } from "../constants/constants";
+import { AlertError } from "./AlertError";
+import { useLogin } from "../hooks/useUsers";
 
 type LoginFormProps = {
   onClickRegister: () => void;
 }
 
+const LoginSchema = Yup.object().shape({
+  username: Yup.string().required('Username is required'),
+  password: Yup.string().required('Password is required'),
+});
+
+export const onSuccessHandler = (
+  setUser: React.Dispatch<React.SetStateAction<User | undefined>>,
+  navigate: NavigateFunction
+) => (data: LoginResponse) => {
+  localStorage.setItem(tokenKey, data.accessToken)
+  const decoded = jwtDecode<User>(data.accessToken);
+  setUser(decoded);
+  navigate("/dashboard")
+}
+
 export const LoginForm: React.FC<LoginFormProps> = ({ onClickRegister }) => {
-  const { login, isLoading, error } = useAuth()
+  const { setUser } = useAuth();
   let navigate = useNavigate()
-  const handleSubmit = React.useCallback((e: React.SyntheticEvent) => {
-    e.preventDefault()
-    const values = e.target
-    console.log(values)
-    login("test1", "password", () => navigate("/dashboard"))
-  }, [login, navigate])
+  const { isLoading, mutate, error, isError } = useLogin({
+    onSuccess: onSuccessHandler(setUser, navigate),
+  });
+  const formik = useFormik({
+    validationSchema: LoginSchema,
+    initialValues: {
+      username: '',
+      password: '',
+    },
+    onSubmit: values => {
+      const username = values.username
+      const password = values.password
+      mutate({ username: username, password: password })
+    },
+  });
   return (
-    <form onSubmit={handleSubmit} className="w-full">
+    <form onSubmit={formik.handleSubmit}>
       <Input
         type="text"
         name="username"
         id="username"
         placeholder="Your username"
         label="Username"
+        error={formik.errors.username}
+        value={formik.values.username}
+        onChange={formik.handleChange}
       />
       <Input
         type="password"
@@ -32,10 +68,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onClickRegister }) => {
         placeholder="Your password"
         name="password"
         label="Password"
+        error={formik.errors.password}
+        value={formik.values.password}
+        onChange={formik.handleChange}
       />
       <div id="button" className="flex flex-col w-full my-5">
         <button
-          className={classNames({ btn: true, loading: isLoading })}
+          type="submit"
+          className={cx({ btn: true, loading: isLoading })}
         >
           Login
         </button>
@@ -43,16 +83,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onClickRegister }) => {
           <button onClick={onClickRegister} className="btn btn-link">Register</button>
         </div>
       </div>
-      {error && (
-        <div className="alert alert-error shadow-lg">
-          <div>
-            <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>{error}</span>
-          </div>
-        </div>
-      )}
+      {isError && <AlertError error={error as string} />}
     </form>
   );
 }

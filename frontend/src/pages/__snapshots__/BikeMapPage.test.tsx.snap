@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`customIcon should render custom icon with available color 1`] = `
+Object {
+  "fillColor": "#2ecc71",
+  "fillOpacity": 1,
+  "path": "M 0,0 C -2,-20 -10,-22 -10,-30 A 10,10 0 1,1 10,-30 C 10,-22 2,-20 0,0 z M -2,-30 a 2,2 0 1,1 4,0 2,2 0 1,1 -4,0",
+  "scale": 1,
+  "strokeColor": "#000",
+  "strokeWeight": 2,
+}
+`;
+
+exports[`customIcon should render custom icon with rented color 1`] = `
+Object {
+  "fillColor": "#34495e",
+  "fillOpacity": 1,
+  "path": "M 0,0 C -2,-20 -10,-22 -10,-30 A 10,10 0 1,1 10,-30 C 10,-22 2,-20 0,0 z M -2,-30 a 2,2 0 1,1 4,0 2,2 0 1,1 -4,0",
+  "scale": 1,
+  "strokeColor": "#000",
+  "strokeWeight": 2,
+}
+`;
