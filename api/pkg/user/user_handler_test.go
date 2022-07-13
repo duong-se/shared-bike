@@ -77,7 +77,7 @@ func (s *UserHandlerTestSuite) TestLogin_InvalidBody() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	respBody := `"invalid body"
+	respBody := `"e4005 invalid body"
 `
 	c.SetPath("/users/login")
 	s.NoError(s.handlerImpl.Login(c))
@@ -99,7 +99,7 @@ func (s *UserHandlerTestSuite) TestLogin_InternalError() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	respBody := `"internal server error"
+	respBody := `"e5000 internal server error"
 `
 	c.SetPath("/users/login")
 	s.NoError(s.handlerImpl.Login(c))
@@ -153,7 +153,7 @@ func (s *UserHandlerTestSuite) TestRegister_InvalidBody() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	respBody := `"invalid body"
+	respBody := `"e4005 invalid body"
 `
 	c.SetPath("/users/register")
 	s.NoError(s.handlerImpl.Register(c))
@@ -176,7 +176,7 @@ func (s *UserHandlerTestSuite) TestRegister_InternalError() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	respBody := `"internal server error"
+	respBody := `"e5000 internal server error"
 `
 	c.SetPath("/users/register")
 	s.NoError(s.handlerImpl.Register(c))

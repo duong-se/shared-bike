@@ -16,6 +16,8 @@ var (
 	ErrBikeAvailable      = errors.New("e4002 cannot return because the bike is available")
 	ErrBikeNotYours       = errors.New("e4003 cannot return because the bike is not yours")
 	ErrUserAlreadyExisted = errors.New("e4004 user already existed")
+	ErrInvalidBody        = errors.New("e4005 invalid body")
+	ErrInvalidBikeID      = errors.New("e4006 invalid bike id")
 	// 404
 	ErrBikeNotFound      = errors.New("e4040 bike not found")
 	ErrUserLoginNotFound = errors.New("e4041 username or password is wrong")
@@ -41,6 +43,10 @@ func GetStatusCode(err error) int {
 	case ErrBikeAvailable:
 		return http.StatusBadRequest
 	case ErrUserNotExisted:
+		return http.StatusBadRequest
+	case ErrInvalidBody:
+		return http.StatusBadRequest
+	case ErrInvalidBikeID:
 		return http.StatusBadRequest
 	case ErrUserAlreadyExisted:
 		return http.StatusBadRequest

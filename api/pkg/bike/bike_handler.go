@@ -64,7 +64,7 @@ func (h *handlerImpl) Rent(c echo.Context) error {
 	bikeIDStr := c.Param("id")
 	if bikeID, err = strconv.ParseInt(bikeIDStr, 10, 64); err != nil {
 		c.Logger().Error(fmt.Sprintf("[BikeHandler.Rent] invalid bike %s", bikeIDStr), err)
-		return c.JSON(http.StatusBadRequest, "invalid bike id")
+		return c.JSON(apperrors.GetStatusCode(apperrors.ErrInvalidBikeID), apperrors.ErrInvalidBikeID.Error())
 	}
 	user := c.Get(middleware.UserKey).(*jwt.Token)
 	claims := user.Claims.(*domain.Claims)
@@ -103,7 +103,7 @@ func (h *handlerImpl) Return(c echo.Context) error {
 	bikeIDStr := c.Param("id")
 	if bikeID, err = strconv.ParseInt(bikeIDStr, 10, 64); err != nil {
 		c.Logger().Error(fmt.Sprintf("[BikeHandler.Return] invalid bike id %s", bikeIDStr), err)
-		return c.JSON(http.StatusBadRequest, "invalid bike id")
+		return c.JSON(apperrors.GetStatusCode(apperrors.ErrInvalidBikeID), apperrors.ErrInvalidBikeID.Error())
 	}
 	user := c.Get(middleware.UserKey).(*jwt.Token)
 	claims := user.Claims.(*domain.Claims)

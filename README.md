@@ -568,6 +568,9 @@ Rule for error code is `e{HTTP_STATUS}{SEQUENCE} MESSAGE`
 1. e4002 cannot return because the bike is available
 1. e4003 cannot return because the bike is not yours
 1. e4004 user already existed
+1. e4005 invalid body
+1. e4006 invalid body
+
 #### 404
 1. e4040 bike not found
 1. e4041 username or password is wrong
@@ -583,7 +586,7 @@ For log convention, I use custom logger which I implement the interface in `cust
 I try to log the event from:
 1. start and end handler methods
 1. start and end in use cases methods
-1. log the error and return a wrapper error message for user to make sure the internal log error or sensitive data not show to the customer
+1. log the error and return a wrapper error message for the user to make sure the internal log error or sensitive data not show to the customer
 
 ## Tech stacks
 ### Backend
@@ -600,5 +603,53 @@ I try to log the event from:
 1. Diagram http://www.plantuml.com
 1. DB Diagram https://dbdiagram.io/d
 
+### Code coverage
+#### API
+  ![API coverage](./img/apiCoverage.png "API Coverage")
+#### Frontend
+```
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   93.92 |    95.38 |   93.42 |   94.14 |
+ src               |   31.81 |        0 |    37.5 |   26.31 |
+  App.tsx          |     100 |      100 |     100 |     100 |
+  index.tsx        |       0 |        0 |       0 |       0 | 9-48
+ src/apis          |     100 |      100 |     100 |     100 |
+  axiosInstance.ts |     100 |      100 |     100 |     100 |
+  bikes.ts         |     100 |      100 |     100 |     100 |
+  users.ts         |     100 |      100 |     100 |     100 |
+ src/components    |     100 |      100 |     100 |     100 |
+  AlertError.tsx   |     100 |      100 |     100 |     100 |
+  Dropdown.tsx     |     100 |      100 |     100 |     100 |
+  Input.tsx        |     100 |      100 |     100 |     100 |
+  LoginForm.tsx    |     100 |      100 |     100 |     100 |
+  PrivateRoute.tsx |     100 |      100 |     100 |     100 |
+  PublicRoute.tsx  |     100 |      100 |     100 |     100 |
+  RegisterForm.tsx |     100 |      100 |     100 |     100 |
+  Spinner.tsx      |     100 |      100 |     100 |     100 |
+ src/constants     |     100 |      100 |     100 |     100 |
+  constants.ts     |     100 |      100 |     100 |     100 |
+ src/hooks         |     100 |      100 |     100 |     100 |
+  AuthProvider.tsx |     100 |      100 |     100 |     100 |
+  useBikes.ts      |     100 |      100 |     100 |     100 |
+  useMap.ts        |     100 |      100 |     100 |     100 |
+  useUsers.ts      |     100 |      100 |     100 |     100 |
+ src/pages         |     100 |      100 |     100 |     100 |
+  BikeMapPage.tsx  |     100 |      100 |     100 |     100 |
+  LoginPage.tsx    |     100 |      100 |     100 |     100 |
+ src/typings       |       0 |        0 |       0 |       0 |
+  types.ts         |       0 |        0 |       0 |       0 |
+-------------------|---------|----------|---------|---------|-------------------
+
+Test Suites: 18 passed, 18 total
+Tests:       70 passed, 70 total
+Snapshots:   8 passed, 8 total
+Time:        5.716 s
+Ran all test suites.
+```
+
 ## Improvement
-For API to get all bikes we'll improve it to get bikes only near locations of the users by using lat and long calculation
+1. For API to get all bikes we'll improve it to get bikes only near locations of the users by using lat and long calculation
+1. To scale the app we'll use caching and CDN layer
+1. To scale the team we can separate the user and bike into two services

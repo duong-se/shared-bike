@@ -110,7 +110,7 @@ func (s *BikeHandlerTestSuite) TestGetAll_Failed() {
 		Valid:  true,
 		Claims: &domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"},
 	})
-	respBody := `"internal server error"
+	respBody := `"e5000 internal server error"
 `
 	c.SetPath("/bikes")
 	s.handlerImpl.GetAllBike(c)
@@ -174,7 +174,7 @@ func (s *BikeHandlerTestSuite) TestRent_FailedUseCase() {
 		Valid:  true,
 		Claims: &domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"},
 	})
-	respBody := `"bike not found"
+	respBody := `"e4040 bike not found"
 `
 	c.SetPath("/bikes/:id/rent")
 	c.SetParamNames("id")
@@ -193,7 +193,7 @@ func (s *BikeHandlerTestSuite) TestRent_FailedParams() {
 		Valid:  true,
 		Claims: &domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"},
 	})
-	respBody := `"invalid bike id"
+	respBody := `"e4006 invalid bike id"
 `
 	c.SetPath("/bikes/:id/rent")
 	c.SetParamNames("id")
@@ -256,7 +256,7 @@ func (s *BikeHandlerTestSuite) TestReturn_FailedUseCase() {
 		Valid:  true,
 		Claims: &domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"},
 	})
-	respBody := `"bike not found"
+	respBody := `"e4040 bike not found"
 `
 	c.SetPath("/bikes/:id/return")
 	c.SetParamNames("id")
@@ -275,7 +275,7 @@ func (s *BikeHandlerTestSuite) TestReturn_FailedParams() {
 		Valid:  true,
 		Claims: &domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"},
 	})
-	respBody := `"invalid bike id"
+	respBody := `"e4006 invalid bike id"
 `
 	c.SetPath("/bikes/:id/return")
 	c.SetParamNames("id")

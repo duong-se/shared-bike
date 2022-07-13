@@ -40,7 +40,7 @@ func (h *handlerImpl) Login(c echo.Context) error {
 	body := domain.LoginBody{}
 	if err := c.Bind(&body); err != nil {
 		c.Logger().Error("[UserHandler.Login] invalid body", err)
-		return c.JSON(http.StatusBadRequest, "invalid body")
+		return c.JSON(apperrors.GetStatusCode(apperrors.ErrInvalidBody), apperrors.ErrInvalidBody.Error())
 	}
 	c.Logger().Info("[UserHandler.Login] logging")
 	user, err := h.usecase.Login(ctx, body)
@@ -52,7 +52,7 @@ func (h *handlerImpl) Login(c echo.Context) error {
 	token, err := h.signToken(user, 300)
 	if err != nil {
 		c.Logger().Error("[UserHandler.Login] sign token error", err)
-		return c.JSON(http.StatusInternalServerError, "internal server error")
+		return c.JSON(apperrors.GetStatusCode(apperrors.ErrInternalServerError), apperrors.ErrInternalServerError.Error())
 	}
 	return c.JSON(http.StatusOK, domain.Credentials{AccessToken: token})
 }
@@ -94,7 +94,7 @@ func (h *handlerImpl) Register(c echo.Context) error {
 	body := domain.RegisterBody{}
 	if err := c.Bind(&body); err != nil {
 		c.Logger().Error("[UserHandler.Register] invalid body", err)
-		return c.JSON(http.StatusBadRequest, "invalid body")
+		return c.JSON(apperrors.GetStatusCode(apperrors.ErrInvalidBody), apperrors.ErrInvalidBody.Error())
 	}
 	user, err := h.usecase.Register(ctx, body)
 	if err != nil {
@@ -105,7 +105,7 @@ func (h *handlerImpl) Register(c echo.Context) error {
 	token, err := h.signToken(user, 300)
 	if err != nil {
 		c.Logger().Error("[UserHandler.Register] sign token error", err)
-		return c.JSON(http.StatusInternalServerError, "internal server error")
+		return c.JSON(apperrors.GetStatusCode(apperrors.ErrInternalServerError), apperrors.ErrInternalServerError.Error())
 	}
 	return c.JSON(http.StatusCreated, domain.Credentials{AccessToken: token})
 }

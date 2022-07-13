@@ -71,3 +71,13 @@ func (s *AppErrorsTestSuite) TestGetStatusCode_ErrUserAlreadyExisted() {
 	err := ErrUserAlreadyExisted
 	s.Equal(http.StatusBadRequest, GetStatusCode(err))
 }
+
+func (s *AppErrorsTestSuite) TestGetStatusCode_ErrInvalidBody() {
+	err := ErrInvalidBody
+	s.Equal(http.StatusBadRequest, GetStatusCode(err))
+}
+
+func (s *AppErrorsTestSuite) TestGetStatusCode_ErrInvalidBikeID() {
+	err := ErrInvalidBikeID
+	s.Equal(http.StatusBadRequest, GetStatusCode(err))
+}
