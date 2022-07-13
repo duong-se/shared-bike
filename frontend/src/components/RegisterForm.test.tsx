@@ -30,24 +30,8 @@ describe('RegisterForm', () => {
     const passwordInput = screen.getByLabelText('Password')
     const confirmPasswordInput = screen.getByLabelText('Confirm Password')
     const nameInput = screen.getByLabelText('Name')
-    await waitFor(() => {
-      const passwordError = screen.getByText('Password is required')
-      expect(passwordError).toBeInTheDocument()
-    })
-    await waitFor(() => {
-      const passwordError = screen.getByText('Confirm password is required')
-      expect(passwordError).toBeInTheDocument()
-    })
-    await waitFor(() => {
-      const nameError = screen.getByText('Name is required')
-      expect(nameError).toBeInTheDocument()
-    })
     fireEvent.change(passwordInput, { target: { value: 'mockPassword' } })
     fireEvent.change(confirmPasswordInput, { target: { value: 'mockPassword1' } })
-    await waitFor(() => {
-      const nameError = screen.getByText('Confirm passwords must match')
-      expect(nameError).toBeInTheDocument()
-    })
     fireEvent.change(confirmPasswordInput, { target: { value: 'mockPassword' } })
     fireEvent.change(nameInput, { target: { value: 'mockName' } })
     const buttons = screen.getAllByRole('button')
@@ -62,6 +46,38 @@ describe('RegisterForm', () => {
         password: 'mockPassword',
         name: 'mockName'
       })
+    })
+  })
+
+  it('should show error', async () => {
+    const mockSetUser = jest.fn()
+    jest.spyOn(AuthProvider, 'useAuth').mockReturnValue({
+      setUser: mockSetUser
+    })
+    const mockMutate = jest.fn()
+    const mockOnSuccess = jest.fn()
+    jest.spyOn(useUsers, 'useRegister').mockReturnValue({
+      isLoading: true,
+      mutate: mockMutate,
+      error: '',
+      isError: false,
+      onSuccess: mockOnSuccess
+    } as unknown as UseMutationResult<RegisterResponse, unknown, RegisterVariables, unknown>)
+    const mockProps = {
+      onClickLogin: jest.fn(),
+    }
+    render(<RegisterForm {...mockProps} />, { wrapper: BrowserRouter })
+    const buttons = screen.getAllByRole('button')
+    fireEvent.click(buttons[0])
+    waitFor(() => {
+      const usernameError = screen.getByText('Username is required')
+      expect(usernameError).toBeInTheDocument()
+      const passwordError = screen.getByText('Password is required')
+      expect(passwordError).toBeInTheDocument()
+      const confirmPasswordError = screen.getByText('Confirm password is required')
+      expect(confirmPasswordError).toBeInTheDocument()
+      const nameError = screen.getByText('Name is required')
+      expect(nameError).toBeInTheDocument()
     })
   })
 

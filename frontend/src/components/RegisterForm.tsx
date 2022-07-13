@@ -59,7 +59,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onClickLogin }) => {
         label="Username"
         placeholder="Your username"
         name="username"
-        error={formik.errors.username}
+        error={formik.touched.username ? formik.errors.username : undefined}
         value={formik.values.username}
         onChange={formik.handleChange}
       />
@@ -69,7 +69,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onClickLogin }) => {
         placeholder="Your password"
         name="password"
         label="Password"
-        error={formik.errors.password}
+        error={formik.touched.password ? formik.errors.password : undefined}
         value={formik.values.password}
         onChange={formik.handleChange}
       />
@@ -79,7 +79,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onClickLogin }) => {
         name="confirmPassword"
         label="Confirm Password"
         placeholder="Your password confirm"
-        error={formik.errors.confirmPassword}
+        error={formik.touched.confirmPassword ? formik.errors.confirmPassword : undefined}
         value={formik.values.confirmPassword}
         onChange={formik.handleChange}
       />
@@ -89,7 +89,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onClickLogin }) => {
         name="name"
         label="Name"
         placeholder="Your name"
-        error={formik.errors.name}
+        error={formik.touched.name ? formik.errors.name : undefined}
         value={formik.values.name}
         onChange={formik.handleChange}
       />
@@ -104,7 +104,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onClickLogin }) => {
           <button onClick={onClickLogin} className="btn btn-link">Login</button>
         </div>
       </div>
-      {isError && <AlertError error={error as string} />}
+      {isError && <AlertError error={(error as Error).message} />}
     </form>
   )
 }

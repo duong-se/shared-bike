@@ -28,10 +28,6 @@ describe('LoginForm', () => {
     const usernameInput = screen.getByLabelText('Username')
     fireEvent.change(usernameInput, { target: { value: 'mockUsername' } })
     const passwordInput = screen.getByLabelText('Password')
-    await waitFor(() => {
-      const passwordError = screen.getByText('Password is required')
-      expect(passwordError).toBeInTheDocument()
-    })
     fireEvent.change(passwordInput, { target: { value: 'mockPassword' } })
     const buttons = screen.getAllByRole('button')
     fireEvent.click(buttons[1])
@@ -44,6 +40,36 @@ describe('LoginForm', () => {
         username: 'mockUsername',
         password: 'mockPassword'
       })
+    })
+  })
+
+  it('should show errors', async () => {
+    const mockSetUser = jest.fn()
+    jest.spyOn(AuthProvider, 'useAuth').mockReturnValue({
+      setUser: mockSetUser
+    })
+    const mockMutate = jest.fn()
+    const mockOnSuccess = jest.fn()
+    jest.spyOn(useUsers, 'useLogin').mockReturnValue({
+      isLoading: true,
+      mutate: mockMutate,
+      error: '',
+      isError: false,
+      onSuccess: mockOnSuccess
+    } as unknown as UseMutationResult<LoginResponse, unknown, LoginVariables, unknown>)
+    const mockProps = {
+      onClickRegister: jest.fn(),
+    }
+    render(<LoginForm {...mockProps} />, { wrapper: BrowserRouter })
+    const buttons = screen.getAllByRole('button')
+    fireEvent.click(buttons[0])
+    waitFor(() => {
+      const usernameError = screen.getByText('Username is required')
+      expect(usernameError).toBeInTheDocument()
+      const passwordError = screen.getByText('Password is required')
+      expect(passwordError).toBeInTheDocument()
+      const nameError = screen.getByText('Name is required')
+      expect(nameError).toBeInTheDocument()
     })
   })
 

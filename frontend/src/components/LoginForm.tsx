@@ -12,7 +12,6 @@ import { Input } from './Input'
 import { tokenKey } from '../constants/constants'
 import { AlertError } from './AlertError'
 import { useLogin } from '../hooks/useUsers'
-import { AxiosError } from 'axios'
 
 type LoginFormProps = {
   onClickRegister: () => void;
@@ -59,7 +58,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onClickRegister }) => {
         id="username"
         placeholder="Your username"
         label="Username"
-        error={formik.errors.username}
+        error={formik.touched.username ? formik.errors.username : undefined}
         value={formik.values.username}
         onChange={formik.handleChange}
       />
@@ -69,7 +68,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onClickRegister }) => {
         placeholder="Your password"
         name="password"
         label="Password"
-        error={formik.errors.password}
+        error={formik.touched.password ? formik.errors.password : undefined}
         value={formik.values.password}
         onChange={formik.handleChange}
       />
@@ -84,7 +83,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onClickRegister }) => {
           <button onClick={onClickRegister} className="btn btn-link">Register</button>
         </div>
       </div>
-      {isError && <AlertError error={(error as AxiosError).message} />}
+      {isError && <AlertError error={(error as Error).message} />}
     </form>
   )
 }
