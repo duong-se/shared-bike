@@ -39,31 +39,44 @@
 
 ### Bike
 #### Get All Bikes
-1. Sequence Diagram
-    ```uml
-    @startuml
-    actor       User
-    boundary    API
-    control     BikesHandler
-    control     BikeUseCase
-    entity      BikeRepository
-    entity      UserRepository
-    database    Database
-    User -> API : HTTPS
-    API -> BikesHandler : check authenticate
-    BikesHandler -> BikeUseCase
-    BikeUseCase -> BikeRepository
-    BikeRepository -> Database : Get all bikes
-    BikeRepository <-- Database : Return []domain.Bike
-    BikeUseCase <-- BikeRepository : Return domain.Bike
-    BikeUseCase -> UserRepository
-    UserRepository -> Database : Get users by IDs
-    UserRepository <-- Database : []domain.User
-    BikeUseCase <-- UserRepository : []domain.User
-    BikesHandler <-- BikeUseCase: []domain.BikeDTO
-    API <-- BikesHandler: []domain.BikeDTO
-    User <-- API : JSON or Error
-    @enduml
+1. Sequence Diagram  
+    ![bikes sequence](./img/getAllBikesSequenceDiagram.png "Get All Bike Sequence Diagram")
+    ```ruby
+      @startuml
+      actor       User
+      boundary    BikeHandler
+      control     BikeUseCase
+      entity      BikeRepository
+      entity      UserRepository
+      database    Database
+
+      User -> BikeHandler
+      alt not authorized
+        BikeHandler --> User: ErrUnauthorizeError
+      else
+        BikeHandler -> BikeUseCase
+        BikeUseCase -> BikeRepository: get all bikes
+        BikeRepository -> Database: get all bikes
+        Database -> BikeRepository: []domain.Bike, error
+        BikeRepository -> BikeUseCase: []domain.Bike, error
+        alt empty bike
+          BikeUseCase --> BikeHandler: empty []domain.BikeDTO
+          BikeHandler --> User: empty []domain.BikeDTO
+        else
+          BikeUseCase -> UserRepository: get users by ids
+          UserRepository -> Database: get users by ids
+          Database --> UserRepository: []domain.User, error
+          UserRepository --> BikeUseCase: []domain.Bike, error
+          alt error not nil
+            BikeUseCase --> BikeHandler: ErrInternalServerError
+            BikeHandler --> User: ErrInternalServerError
+          else
+            BikeUseCase --> BikeHandler: []domain.BikeDTO
+            BikeHandler --> User: bikes
+          end
+        end
+      end
+      @enduml
     ```
 1. Params
     - No parameters
@@ -91,10 +104,75 @@
     - `lat` is latitude
     - `long` is longitude
     - `name` is the name of the bike
-    - `nameOfRenter`(optional) is name of the renter
     - `userId` is renter id
 #### Rent Bike
+1. Sequence Diagram  
+    ![rent bike sequence](./img/rentBikeSequenceDiagram.png "Rent A Bike Sequence Diagram")
+      ```ruby
+      @startuml
+      actor       User
+      boundary    BikeHandler
+      control     BikeUseCase
+      entity      BikeRepository
+      entity      UserRepository
+      database    Database
+      User -> BikeHandler : HTTPS/check authenticate
+      alt not authorized
+        BikeHandler --> User: ErrUnauthorizeError
+      else
+        BikeHandler -> BikeUseCase
+        BikeUseCase -> BikeRepository: count bike by userID
+        BikeRepository -> Database: count bike by userID
+        Database --> BikeRepository: count, error
+        BikeRepository --> BikeUseCase: count,error
+        alt error not nil
+          BikeUseCase --> BikeHandler: ErrInternalServerError
+          BikeHandler --> User: ErrInternalServerError
+        else count = 0
+          BikeUseCase --> BikeHandler: ErrUserHasBikeAlready
+          BikeHandler --> User: ErrUserHasBikeAlready
+        else
+          BikeUseCase -> UserRepository: Get rent user info
+          UserRepository -> Database: Get rent user info
+          Database --> UserRepository: domain.User, error
+          UserRepository --> BikeUseCase: domain.User, error
+          alt user not found
+            BikeUseCase --> BikeHandler: ErrUserNotExisted
+            BikeHandler --> User: ErrUserNotExisted
+          else error not nil
+            BikeUseCase --> BikeHandler: ErrInternalServerError
+            BikeHandler --> User: ErrInternalServerError
+          else
+            BikeUseCase -> BikeRepository: Get bike user rent
+            BikeRepository -> Database: Get bike user rent
+            Database -> BikeRepository: domain.Bike, error
+            BikeRepository --> BikeUseCase: domain.Bike, error
+            alt bike not found
+              BikeUseCase --> BikeHandler: ErrInternalServerError
+              BikeHandler --> User: ErrInternalServerError
+            else bike rented
+              BikeUseCase --> BikeHandler: ErrBikeRented
+              BikeHandler --> User: ErrBikeRented
+            else
+              BikeUseCase -> BikeRepository: Update bike's userId and bike's status
+              BikeRepository -> Database: Update bike
+              Database -> BikeRepository: error
+              BikeRepository -> BikeUseCase: error
+              alt error not nil
+                BikeUseCase --> BikeHandler: ErrInternalServerError
+                BikeHandler --> User: ErrInternalServerError
+              else
+                BikeUseCase --> BikeHandler: domain.BikeDTO
+                BikeHandler --> User: updated bike
+              end
+            end
+          end
+        end
+      end
+      @enduml
+      ```
 #### Return Bike
+
 
 ## Tech stacks
 ### Backend
