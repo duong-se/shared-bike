@@ -3,7 +3,7 @@
 ### By docker-compose
 1. Run command `docker-compose build`
 1. Run command `docker-compose up -d frontend`
-1. Waiting for all services started
+1. Waiting for all services to started
 1. Restart dev_api by running `docker restart dev_api` for migration of the first time
 1. Wait for the project to start and access the frontend via `http://localhost:3000` and the API will serve on `http://localhost:8000`
 ### By machine environment
@@ -80,21 +80,22 @@
     ```
 1. Params
     - No parameters
+1. Headers
+    - `Content-type`: application/json
+    - `Authorization`: Bearer {token}
 1. Response
     - Status 200  
         ```json
           [
-            [
-              {
-                "id": 1,
-                "lat": "50.119504",
-                "long": "8.638137",
-                "name": "henry",
-                "nameOfRenter": "Bob",
-                "status": "rented",
-                "userId": 1,
-              }
-            ]
+            {
+              "id": 1,
+              "lat": "50.119504",
+              "long": "8.638137",
+              "name": "henry",
+              "nameOfRenter": "Bob",
+              "status": "rented",
+              "userId": 1,
+            }
           ]
         ```
     - Status 500  
@@ -171,9 +172,109 @@
       end
       @enduml
       ```
+1. Params
+    - `id` bike id
+1. Headers
+    - `Content-type`: application/json
+    - `Authorization`: Bearer {token}
+1. Response
+    - Status 200  
+        ```json
+          {
+            "id": 1,
+            "lat": "50.119504",
+            "long": "8.638137",
+            "name": "henry",
+            "nameOfRenter": "Bob",
+            "status": "rented",
+            "userId": 1,
+          }
+        ```
+    - Status 400  
+        `invalid bike id | cannot rent because you have already rented a bike | user not exists or inactive | bike not found | cannot rent because bike is rented`
+    - Status 500  
+        `internal server error`
+1. Response property
+    - `id` is a unique id of bike
+    - `lat` is latitude
+    - `long` is longitude
+    - `name` is the name of the bike
+    - `userId` is renter id
+
 #### Return Bike
-
-
+1. Sequence Diagram  
+    ![return bike sequence](./img/returnBikeSequenceDiagram.png "Return A Bike Sequence Diagram")
+    ```ruby
+    @startuml
+    actor       User
+    boundary    BikeHandler
+    control     BikeUseCase
+    entity      BikeRepository
+    database    Database
+    User -> BikeHandler : HTTPS/check authenticate
+    alt not authorized
+      BikeHandler --> User: ErrUnauthorizeError
+    else
+      BikeHandler -> BikeUseCase
+      BikeUseCase -> BikeRepository: get current return bike
+      BikeRepository -> Database: get current return bike
+      Database --> BikeRepository: domain.Bike, error
+      BikeRepository --> BikeUseCase: domain.Bike, error
+      alt bike not found
+        BikeUseCase --> BikeHandler: ErrBikeNotFound
+        BikeHandler --> User: bike not found
+      else error not nil
+        BikeUseCase --> BikeHandler: ErrInternalServerError
+        BikeHandler --> User: internal server error
+      else currentBikeAvailable
+        BikeUseCase --> BikeHandler: ErrBikeAvailable
+        BikeHandler --> User: cannot return because bike is available
+      else currentBike own by other user
+        BikeUseCase --> BikeHandler: ErrBikeNotYours
+        BikeHandler --> User: cannot return because bike is not yours
+      else
+        BikeUseCase -> BikeRepository: update bike's status to available and userId null
+        BikeRepository -> Database: update bike's status to available and userId null
+        Database --> BikeRepository: domain.Bike, error
+        BikeRepository --> BikeUseCase: domain.Bike, error
+        alt error not nil
+          BikeUseCase --> BikeHandler: ErrInternalServerError
+          BikeHandler --> User: internal server error
+        else
+          BikeUseCase --> BikeHandler: domain.BikeDTO
+          BikeHandler --> User: updated bike
+      end
+    end
+    @enduml
+    ```
+1. Params
+    - `id` bike id
+1. Headers
+    - `Content-type`: application/json
+    - `Authorization`: Bearer {token}
+1. Response
+    - Status 200  
+        ```json
+          {
+            "id": 1,
+            "lat": "50.119504",
+            "long": "8.638137",
+            "name": "henry",
+            "nameOfRenter": "Bob",
+            "status": "rented",
+            "userId": 1,
+          }
+        ```
+    - Status 400  
+        `invalid bike id | bike not found | cannot return because bike is available | cannot return because bike is not yours`
+    - Status 500  
+        `internal server error`
+1. Response property
+    - `id` is a unique id of bike
+    - `lat` is latitude
+    - `long` is longitude
+    - `name` is the name of the bike
+    - `userId` is renter id
 ## Tech stacks
 ### Backend
 1. Golang
