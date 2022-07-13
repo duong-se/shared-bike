@@ -13,7 +13,6 @@ describe('fetchBikes', () => {
         status: BikeStatus.RENTED,
         nameOfRenter: 'mockRenter',
         userId: 1,
-        usernameOfRenter: 'mockUsername',
       },
       {
         id: 2,
@@ -23,7 +22,6 @@ describe('fetchBikes', () => {
         status: BikeStatus.RENTED,
         nameOfRenter: 'mockRenter1',
         userId: 1,
-        usernameOfRenter: 'mockUsername1',
       },
     ]
     jest.spyOn(axiosApiInstance, 'get').mockResolvedValue({
@@ -66,7 +64,6 @@ describe('rentBike', () => {
       status: BikeStatus.RENTED,
       nameOfRenter: 'mockRenter',
       userId: 1,
-      usernameOfRenter: 'mockUsername',
     }
     jest.spyOn(axiosApiInstance, 'patch').mockResolvedValue({
       data: mockBike,
@@ -97,7 +94,6 @@ describe('returnBike', () => {
       status: BikeStatus.AVAILABLE,
       nameOfRenter: '',
       userId: 0,
-      usernameOfRenter: '',
     }
     jest.spyOn(axiosApiInstance, 'patch').mockResolvedValue({
       data: mockBike,

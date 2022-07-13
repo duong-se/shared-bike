@@ -1,0 +1,66 @@
+version: '3.9'
+services:
+  db:
+    container_name: "dev_db"
+    platform: linux/x86_64
+    build:
+      context: .
+      dockerfile: db.Dockerfile
+    restart: always
+    ports:
+      - 3306:3306
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: shared_bike
+    networks:
+      - default
+
+  api:
+    restart: on-failure
+    container_name: "dev_api"
+    build:
+      context: .
+      dockerfile: api.Dockerfile
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    volumes:
+      - ./api/:/app
+    environment:
+      DB_CONNECTION_STRING: "root:root@tcp(db:3306)/shared_bike?charset=utf8mb4&parseTime=True&loc=Local"
+      SECRET: "my-secret"
+      PORT: 8000
+      TLS: http
+      BASE_URL: localhost:8000
+      DATABASE_HOST: db
+      DATABASE_PORT: 3306
+      ENV: dev
+    networks:
+      - default
+
+  frontend:
+    restart: on-failure
+    container_name: "dev_frontend"
+    build:
+      context: .
+      dockerfile: fe.Dockerfile
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+      - api
+    volumes:
+      - ./frontend/:/app
+    networks:
+      - default
+
+
+networks:
+  default:
+    driver: bridge
+volumes:
+  mysql_data:

@@ -57,7 +57,6 @@ describe('BikeMapPage', () => {
         status: BikeStatus.RENTED,
         nameOfRenter: 'mockRenter',
         userId: 1,
-        usernameOfRenter: 'mockUsername',
       }]
     } as unknown as reactQuery.UseQueryResult<Bike[], unknown>)
     jest.spyOn(useMap, 'useMap').mockReturnValue({
@@ -95,7 +94,6 @@ describe('BikeMapPage', () => {
         status: BikeStatus.RENTED,
         nameOfRenter: 'mockRenter',
         userId: 1,
-        usernameOfRenter: 'mockUsername',
       }]
     } as unknown as reactQuery.UseQueryResult<Bike[], unknown>)
     jest.spyOn(useMap, 'useMap').mockReturnValue({
@@ -133,7 +131,6 @@ describe('BikeMapPage', () => {
         status: BikeStatus.AVAILABLE,
         nameOfRenter: '',
         userId: 0,
-        usernameOfRenter: '',
       }]
     } as unknown as reactQuery.UseQueryResult<Bike[], unknown>)
     jest.spyOn(useMap, 'useMap').mockReturnValue({
@@ -200,7 +197,6 @@ describe('contentMap', () => {
       status: BikeStatus.RENTED,
       nameOfRenter: 'mockRenter',
       userId: 1,
-      usernameOfRenter: 'mockUsername',
     } as Bike)
     expect(view).toContain('bike-action-1')
     expect(view).toContain('RENT BIKE')
@@ -216,7 +212,6 @@ describe('contentMap', () => {
       status: BikeStatus.RENTED,
       nameOfRenter: 'mockRenter',
       userId: 1,
-      usernameOfRenter: 'mockUsername',
     } as Bike)
     expect(view).toContain('bike-action-1')
     expect(view).toContain('RENT BIKE')
@@ -232,7 +227,6 @@ describe('contentMap', () => {
       status: BikeStatus.RENTED,
       nameOfRenter: 'mockRenter',
       userId: 1,
-      usernameOfRenter: 'mockUsername',
     } as Bike)
     expect(view).toContain('bike-action-1')
     expect(view).toContain('RETURN BIKE')
@@ -249,7 +243,6 @@ describe('renderCommonContent', () => {
       status: BikeStatus.RENTED,
       nameOfRenter: 'mockRenter',
       userId: 1,
-      usernameOfRenter: 'mockUsername',
     } as Bike)
     expect(view).toContain('mockName')
   })
@@ -272,7 +265,6 @@ describe('renderUserHasBikeCase', () => {
           status: BikeStatus.RENTED,
           nameOfRenter: 'mockRenter',
           userId: 1,
-          usernameOfRenter: 'mockUsername',
         },
         {
           id: 2,
@@ -282,7 +274,6 @@ describe('renderUserHasBikeCase', () => {
           status: BikeStatus.RENTED,
           nameOfRenter: 'mockRenter1',
           userId: 1,
-          usernameOfRenter: 'mockUsername1',
         },
       ] as Array<Bike>,
       {
@@ -293,7 +284,6 @@ describe('renderUserHasBikeCase', () => {
         status: BikeStatus.RENTED,
         nameOfRenter: 'mockRenter',
         userId: 1,
-        usernameOfRenter: 'mockUsername',
       },
       mockReturnBikeMutate,
       map,
@@ -324,7 +314,6 @@ describe('renderUserHasBikeCase', () => {
           status: BikeStatus.RENTED,
           nameOfRenter: 'mockRenter',
           userId: 1,
-          usernameOfRenter: 'mockUsername',
         },
         {
           id: 2,
@@ -334,7 +323,6 @@ describe('renderUserHasBikeCase', () => {
           status: BikeStatus.RENTED,
           nameOfRenter: 'mockRenter1',
           userId: 1,
-          usernameOfRenter: 'mockUsername1',
         },
       ] as Array<Bike>,
       {
@@ -345,7 +333,6 @@ describe('renderUserHasBikeCase', () => {
         status: BikeStatus.RENTED,
         nameOfRenter: 'mockRenter',
         userId: 1,
-        usernameOfRenter: 'mockUsername',
       },
       mockReturnBikeMutate,
       undefined,
@@ -372,7 +359,6 @@ describe('renderUserHasNoBikeCase', () => {
           status: BikeStatus.RENTED,
           nameOfRenter: 'mockRenter',
           userId: 1,
-          usernameOfRenter: 'mockUsername',
         },
         {
           id: 2,
@@ -382,7 +368,6 @@ describe('renderUserHasNoBikeCase', () => {
           status: BikeStatus.AVAILABLE,
           nameOfRenter: '',
           userId: 0,
-          usernameOfRenter: '',
         },
       ] as Array<Bike>,
       mockReturnBikeMutate,
@@ -412,7 +397,6 @@ describe('renderUserHasNoBikeCase', () => {
           status: BikeStatus.RENTED,
           nameOfRenter: 'mockRenter',
           userId: 1,
-          usernameOfRenter: 'mockUsername',
         },
         {
           id: 2,
@@ -422,7 +406,6 @@ describe('renderUserHasNoBikeCase', () => {
           status: BikeStatus.RENTED,
           nameOfRenter: 'mockRenter1',
           userId: 1,
-          usernameOfRenter: 'mockUsername1',
         },
       ] as Array<Bike>,
       mockReturnBikeMutate,
@@ -444,7 +427,6 @@ describe('onRentOrReturnSuccess', () => {
         status: BikeStatus.RENTED,
         nameOfRenter: 'mockRenter',
         userId: 1,
-        usernameOfRenter: 'mockUsername',
       },
       {
         id: 2,
@@ -454,7 +436,6 @@ describe('onRentOrReturnSuccess', () => {
         status: BikeStatus.RENTED,
         nameOfRenter: 'mockRenter1',
         userId: 1,
-        usernameOfRenter: 'mockUsername1',
       }
     ])
     jest.spyOn(queryClient, 'getQueryData').mockReturnValue([
@@ -466,7 +447,6 @@ describe('onRentOrReturnSuccess', () => {
         status: BikeStatus.RENTED,
         nameOfRenter: 'mockRenter',
         userId: 1,
-        usernameOfRenter: 'mockUsername',
       },
       {
         id: 2,
@@ -476,7 +456,6 @@ describe('onRentOrReturnSuccess', () => {
         status: BikeStatus.RENTED,
         nameOfRenter: 'mockRenter1',
         userId: 1,
-        usernameOfRenter: 'mockUsername1',
       },
     ])
     const fn = onRentOrReturnSuccess(queryClient)
@@ -488,7 +467,6 @@ describe('onRentOrReturnSuccess', () => {
       status: BikeStatus.RENTED,
       nameOfRenter: 'mockRenter',
       userId: 1,
-      usernameOfRenter: 'mockUsername',
     })
     expect(spy).toBeCalled()
   })
@@ -504,7 +482,6 @@ describe('onRentOrReturnSuccess', () => {
         status: BikeStatus.RENTED,
         nameOfRenter: 'mockRenter',
         userId: 1,
-        usernameOfRenter: 'mockUsername',
       },
       {
         id: 2,
@@ -514,7 +491,6 @@ describe('onRentOrReturnSuccess', () => {
         status: BikeStatus.RENTED,
         nameOfRenter: 'mockRenter1',
         userId: 1,
-        usernameOfRenter: 'mockUsername1',
       }
     ])
     jest.spyOn(queryClient, 'getQueryData').mockReturnValue(undefined)
@@ -527,7 +503,6 @@ describe('onRentOrReturnSuccess', () => {
       status: BikeStatus.RENTED,
       nameOfRenter: 'mockRenter',
       userId: 1,
-      usernameOfRenter: 'mockUsername',
     })
     expect(spy).not.toBeCalled()
   })
@@ -564,7 +539,6 @@ describe('handlePopUpButtonCallback', () => {
       status: BikeStatus.RENTED,
       nameOfRenter: 'mockRenter',
       userId: 1,
-      usernameOfRenter: 'mockUsername',
     }
     render(<MockComponent />)
     const fn = handlePopUpButtonCallback(mockFn, mockBike, infoWindow)
@@ -587,7 +561,6 @@ describe('handlePopUpButtonCallback', () => {
       status: BikeStatus.RENTED,
       nameOfRenter: 'mockRenter',
       userId: 1,
-      usernameOfRenter: 'mockUsername',
     }
     render(<div />)
     const fn = handlePopUpButtonCallback(mockFn, mockBike, infoWindow)

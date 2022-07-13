@@ -34,7 +34,6 @@ export type Bike = {
   status: BikeStatus
   userId?: number
   nameOfRenter?: string
-  usernameOfRenter?: string
 }
 
 export type RegisterVariables = {
