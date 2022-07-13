@@ -6,7 +6,7 @@ import { PublicRoute } from './PublicRoute'
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   Navigate: ({ children }: React.PropsWithChildren) => <div>{children}</div>
-}));
+}))
 
 describe('PublicRoute', () => {
   it('should run and return children', async () => {

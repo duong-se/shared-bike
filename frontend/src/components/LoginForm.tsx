@@ -1,17 +1,18 @@
-import React from "react"
-import { NavigateFunction, useNavigate } from "react-router-dom"
-import jwtDecode from "jwt-decode"
-import cx from "classnames"
+import React from 'react'
+import { NavigateFunction, useNavigate } from 'react-router-dom'
+import jwtDecode from 'jwt-decode'
+import cx from 'classnames'
 import {
   useFormik,
-} from 'formik';
-import * as Yup from 'yup';
-import { useAuth } from "../hooks/AuthProvider"
-import { LoginResponse, User } from "../typings/types"
-import { Input } from "./Input";
-import { tokenKey } from "../constants/constants";
-import { AlertError } from "./AlertError";
-import { useLogin } from "../hooks/useUsers";
+} from 'formik'
+import * as Yup from 'yup'
+import { useAuth } from '../hooks/AuthProvider'
+import { LoginResponse, User } from '../typings/types'
+import { Input } from './Input'
+import { tokenKey } from '../constants/constants'
+import { AlertError } from './AlertError'
+import { useLogin } from '../hooks/useUsers'
+import { AxiosError } from 'axios'
 
 type LoginFormProps = {
   onClickRegister: () => void;
@@ -20,24 +21,24 @@ type LoginFormProps = {
 const LoginSchema = Yup.object().shape({
   username: Yup.string().required('Username is required'),
   password: Yup.string().required('Password is required'),
-});
+})
 
 export const onSuccessHandler = (
   setUser: React.Dispatch<React.SetStateAction<User | undefined>>,
   navigate: NavigateFunction
 ) => (data: LoginResponse) => {
   localStorage.setItem(tokenKey, data.accessToken)
-  const decoded = jwtDecode<User>(data.accessToken);
-  setUser(decoded);
-  navigate("/dashboard")
+  const decoded = jwtDecode<User>(data.accessToken)
+  setUser(decoded)
+  navigate('/dashboard', { replace: true })
 }
 
 export const LoginForm: React.FC<LoginFormProps> = ({ onClickRegister }) => {
-  const { setUser } = useAuth();
-  let navigate = useNavigate()
+  const { setUser } = useAuth()
+  const navigate = useNavigate()
   const { isLoading, mutate, error, isError } = useLogin({
     onSuccess: onSuccessHandler(setUser, navigate),
-  });
+  })
   const formik = useFormik({
     validationSchema: LoginSchema,
     initialValues: {
@@ -49,7 +50,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onClickRegister }) => {
       const password = values.password
       mutate({ username: username, password: password })
     },
-  });
+  })
   return (
     <form onSubmit={formik.handleSubmit}>
       <Input
@@ -83,7 +84,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onClickRegister }) => {
           <button onClick={onClickRegister} className="btn btn-link">Register</button>
         </div>
       </div>
-      {isError && <AlertError error={error as string} />}
+      {isError && <AlertError error={(error as AxiosError).message} />}
     </form>
-  );
+  )
 }

@@ -18,15 +18,15 @@ describe('handleInterceptRequestError', () => {
 
 describe('handleInterceptConfig', () => {
   it('should return config', () => {
-  jest.spyOn(axios, 'create')
-  const result = handleInterceptConfig({})
+    jest.spyOn(axios, 'create')
+    const result = handleInterceptConfig({})
     expect(result).toEqual({})
   })
 
   it('should return config with authentication', () => {
-  jest.spyOn(axios, 'create')
-  localStorage.setItem(tokenKey, 'mockToken')
-  const result = handleInterceptConfig({})
+    jest.spyOn(axios, 'create')
+    localStorage.setItem(tokenKey, 'mockToken')
+    const result = handleInterceptConfig({})
     expect(result).toEqual({
       headers: {
         Authorization: 'Bearer mockToken'
@@ -37,7 +37,7 @@ describe('handleInterceptConfig', () => {
 
 describe('handleInterceptResponse', () => {
   it('should run and return response', () => {
-    const result = handleInterceptResponse({ data: 'mockData' } as AxiosResponse<any, any>)
+    const result = handleInterceptResponse({ data: 'mockData' } as AxiosResponse<unknown, unknown>)
     expect(result).toEqual({ data: 'mockData' })
   })
 })

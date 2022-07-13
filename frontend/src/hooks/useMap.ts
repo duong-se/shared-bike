@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState } from 'react'
 
 export type UseMapReturn = {
   mapRef: (node: HTMLDivElement | null) => void
@@ -12,10 +12,10 @@ export const useMap = (position: google.maps.LatLng): UseMapReturn => {
       const map = new window.google.maps.Map(node, {
         center: position,
         zoom: 8,
-      });
+        fullscreenControl: false,
+      })
       setMap(map)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   return {
     map,

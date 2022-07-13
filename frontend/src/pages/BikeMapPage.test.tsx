@@ -1,7 +1,7 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react"
-import { QueryClient, QueryClientProvider } from "react-query";
-import * as reactQuery from "react-query"
-import { initialize, mockInstances, Map, Marker, InfoWindow } from "@googlemaps/jest-mocks";
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from 'react-query'
+import * as reactQuery from 'react-query'
+import { initialize, mockInstances, Map, Marker, InfoWindow } from '@googlemaps/jest-mocks'
 import {
   availableColor,
   BikeMapPage,
@@ -14,26 +14,26 @@ import {
   onRentOrReturnSuccess,
   handleMarkerCallback,
   handlePopUpButtonCallback,
-} from "./BikeMapPage"
+} from './BikeMapPage'
 import * as useBikes from '../hooks/useBikes'
-import { Bike, BikeStatus } from "../typings/types";
+import { Bike, BikeStatus } from '../typings/types'
 import * as useAuth from '../hooks/AuthProvider'
 import * as useMap from '../hooks/useMap'
 
 describe('BikeMapPage', () => {
   beforeEach(() => {
-    initialize();
-  });
+    initialize()
+  })
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
         retry: false,
       },
     },
-  });
+  })
   const Provider: React.FC<React.PropsWithChildren> = ({ children }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
+  )
   it('should render loading', async () => {
     jest.spyOn(reactQuery, 'useQueryClient').mockReturnValue({
       setQueryData: jest.fn(),
@@ -52,8 +52,8 @@ describe('BikeMapPage', () => {
       data: [{
         id: 1,
         name: 'mockName',
-        lat: "50.123456",
-        long: "8.123456",
+        lat: '50.123456',
+        long: '8.123456',
         status: BikeStatus.RENTED,
         nameOfRenter: 'mockRenter',
         userId: 1,
@@ -90,8 +90,8 @@ describe('BikeMapPage', () => {
       data: [{
         id: 1,
         name: 'mockName',
-        lat: "50.123456",
-        long: "8.123456",
+        lat: '50.123456',
+        long: '8.123456',
         status: BikeStatus.RENTED,
         nameOfRenter: 'mockRenter',
         userId: 1,
@@ -128,8 +128,8 @@ describe('BikeMapPage', () => {
       data: [{
         id: 1,
         name: 'mockName',
-        lat: "50.123456",
-        long: "8.123456",
+        lat: '50.123456',
+        long: '8.123456',
         status: BikeStatus.AVAILABLE,
         nameOfRenter: '',
         userId: 0,
@@ -195,8 +195,8 @@ describe('contentMap', () => {
     const view = map.renderButton({
       id: 1,
       name: 'mockName',
-      lat: "50.123456",
-      long: "8.123456",
+      lat: '50.123456',
+      long: '8.123456',
       status: BikeStatus.RENTED,
       nameOfRenter: 'mockRenter',
       userId: 1,
@@ -257,11 +257,11 @@ describe('renderCommonContent', () => {
 
 describe('renderUserHasBikeCase', () => {
   beforeEach(() => {
-    initialize();
-  });
+    initialize()
+  })
   it('should render bikes', () => {
     const mockReturnBikeMutate = jest.fn()
-    const map = new google.maps.Map(document.createElement('div'));
+    const map = new google.maps.Map(document.createElement('div'))
     const view = renderUserHasBikeCase(
       [
         {
@@ -299,8 +299,8 @@ describe('renderUserHasBikeCase', () => {
       map,
     )
     const infoWindowMocks = mockInstances.get(InfoWindow)
-    const markerMocks = mockInstances.get(Marker);
-    expect(markerMocks).toHaveLength(2);
+    const markerMocks = mockInstances.get(Marker)
+    expect(markerMocks).toHaveLength(2)
     expect(markerMocks[0].setIcon).toHaveBeenCalledTimes(1)
     expect(infoWindowMocks[0].setContent).toHaveBeenCalledTimes(1)
     expect(infoWindowMocks[0].addListener).toHaveBeenCalledTimes(1)
@@ -357,11 +357,11 @@ describe('renderUserHasBikeCase', () => {
 
 describe('renderUserHasNoBikeCase', () => {
   beforeEach(() => {
-    initialize();
-  });
+    initialize()
+  })
   it('should render bikes', () => {
     const mockReturnBikeMutate = jest.fn()
-    const map = new google.maps.Map(document.createElement('div'));
+    const map = new google.maps.Map(document.createElement('div'))
     const view = renderUserHasNoBikeCase(
       [
         {
@@ -389,8 +389,8 @@ describe('renderUserHasNoBikeCase', () => {
       map,
     )
     const infoWindowMocks = mockInstances.get(InfoWindow)
-    const markerMocks = mockInstances.get(Marker);
-    expect(markerMocks).toHaveLength(2);
+    const markerMocks = mockInstances.get(Marker)
+    expect(markerMocks).toHaveLength(2)
     expect(markerMocks[0].setIcon).toHaveBeenCalledTimes(1)
     expect(infoWindowMocks[0].addListener).toHaveBeenCalledTimes(0)
     expect(markerMocks[0].addListener).toHaveBeenCalledTimes(1)
@@ -535,10 +535,10 @@ describe('onRentOrReturnSuccess', () => {
 
 describe('handleMarkerCallback', () => {
   beforeEach(() => {
-    initialize();
-  });
+    initialize()
+  })
   it('should run and call call open fn', () => {
-    const map = new google.maps.Map(document.createElement('div'));
+    const map = new google.maps.Map(document.createElement('div'))
     const infoWindow = new google.maps.InfoWindow()
     const marker = new google.maps.Marker()
     const fn = handleMarkerCallback(infoWindow, marker, map)
@@ -551,8 +551,8 @@ describe('handleMarkerCallback', () => {
 describe('handlePopUpButtonCallback', () => {
   const MockComponent = () => <button data-testid="test-button-1" id="bike-action-1">mock</button>
   beforeEach(() => {
-    initialize();
-  });
+    initialize()
+  })
   it('should run and call open fn', () => {
     const infoWindow = new google.maps.InfoWindow()
     const mockFn = jest.fn()

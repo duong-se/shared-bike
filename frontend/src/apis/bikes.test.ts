@@ -35,28 +35,24 @@ describe('fetchBikes', () => {
   })
   it('should throw error normal', async () => {
     jest.spyOn(axiosApiInstance, 'get').mockRejectedValue(new Error('mockError'))
-    const spy = jest.spyOn(console, 'error')
-    let err;
+    let err
     try {
       await fetchBikes()
     } catch (error) {
       err = error
     }
     expect(err).toEqual('mockError')
-    expect(spy).toBeCalled()
   })
 
   it('should throw error axios', async () => {
     jest.spyOn(axiosApiInstance, 'get').mockRejectedValue(new AxiosError('mockError'))
-    const spy = jest.spyOn(console, 'error')
-    let err;
+    let err
     try {
       await fetchBikes()
     } catch (error) {
       err = error
     }
     expect(err).toEqual('mockError')
-    expect(spy).toBeCalled()
   })
 })
 
@@ -81,15 +77,13 @@ describe('rentBike', () => {
   })
   it('should throw error normal', async () => {
     jest.spyOn(axiosApiInstance, 'patch').mockRejectedValue(new Error('mockError'))
-    const spy = jest.spyOn(console, 'error')
-    let err;
+    let err
     try {
       await rentBike({ bikeId: 1 })
     } catch (error) {
       err = error
     }
     expect(err).toEqual('mockError')
-    expect(spy).toBeCalled()
   })
 })
 
@@ -114,14 +108,12 @@ describe('returnBike', () => {
   })
   it('should throw error normal', async () => {
     jest.spyOn(axiosApiInstance, 'patch').mockRejectedValue(new Error('mockError'))
-    const spy = jest.spyOn(console, 'error')
-    let err;
+    let err
     try {
       await returnBike({ bikeId: 1 })
     } catch (error) {
       err = error
     }
     expect(err).toEqual('mockError')
-    expect(spy).toBeCalled()
   })
 })

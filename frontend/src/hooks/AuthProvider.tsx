@@ -1,7 +1,7 @@
-import React, { useEffect } from "react"
+import React, { useEffect } from 'react'
 import jwtDecode from 'jwt-decode'
-import { tokenKey } from "../constants/constants";
-import { User } from "../typings/types";
+import { tokenKey } from '../constants/constants'
+import { User } from '../typings/types'
 
 
 type AuthContextType = {
@@ -9,10 +9,13 @@ type AuthContextType = {
   user?: User
 }
 
-const AuthContext = React.createContext<AuthContextType>(null!);
+const AuthContext = React.createContext<AuthContextType>({
+  setUser: () => { return null },
+  user: undefined,
+})
 
 export const useAuth = () => {
-  return React.useContext(AuthContext);
+  return React.useContext(AuthContext)
 }
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -20,9 +23,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const token = localStorage.getItem(tokenKey)
     if (token) {
-      const decoded = jwtDecode<User>(token);
-      setUser(decoded);
+      const decoded = jwtDecode<User>(token)
+      setUser(decoded)
     }
   }, [])
-  return <AuthContext.Provider value={{ user, setUser }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, setUser }}>{children}</AuthContext.Provider>
 }

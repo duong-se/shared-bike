@@ -1,12 +1,12 @@
-import { memo, useEffect } from 'react';
-import { MarkerClusterer } from "@googlemaps/markerclusterer";
-import { useMap } from '../hooks/useMap';
-import { useAuth } from '../hooks/AuthProvider';
-import { Spinner } from '../components/Spinner';
-import { Bike, BikeStatus, RentBikeVariables, ReturnBikeVariables } from '../typings/types';
-import { MutateOptions, QueryClient, useQueryClient } from 'react-query';
-import { AlertError } from '../components/AlertError';
-import { useBikes, useRentBike, useReturnBike } from '../hooks/useBikes';
+import { memo, useEffect } from 'react'
+import { MarkerClusterer } from '@googlemaps/markerclusterer'
+import { useMap } from '../hooks/useMap'
+import { useAuth } from '../hooks/AuthProvider'
+import { Spinner } from '../components/Spinner'
+import { Bike, BikeStatus, RentBikeVariables, ReturnBikeVariables } from '../typings/types'
+import { MutateOptions, QueryClient, useQueryClient } from 'react-query'
+import { AlertError } from '../components/AlertError'
+import { useBikes, useRentBike, useReturnBike } from '../hooks/useBikes'
 
 export const customIcon = (color: string) => {
   return {
@@ -109,9 +109,9 @@ export const renderUserHasBikeCase = (
     const marker = new google.maps.Marker({
       position: { lat: Number(bike.lat), lng: Number(bike.long) },
       map: map,
-      title: "title"
+      title: 'title'
     })
-    const infoWindow = new google.maps.InfoWindow();
+    const infoWindow = new google.maps.InfoWindow()
     let { icon, renderButton } = contentMap[BikeStatus.RENTED]
     if (isUserBike) {
       icon = contentMap.returnBike.icon
@@ -125,7 +125,7 @@ export const renderUserHasBikeCase = (
       </div>
     `
     infoWindow.setContent(popUpContent)
-    marker.addListener("click", handleMarkerCallback(infoWindow, marker, map));
+    marker.addListener('click', handleMarkerCallback(infoWindow, marker, map))
     if (isUserBike) {
       infoWindow.addListener('domready', handlePopUpButtonCallback(returnBikeMutate, bike, infoWindow))
     }
@@ -152,7 +152,7 @@ export const handleMarkerCallback = (infoWindow: google.maps.InfoWindow, marker:
     anchor: marker,
     map,
     shouldFocus: false
-  });
+  })
 }
 
 
@@ -169,7 +169,7 @@ export const renderUserHasNoBikeCase = (
     const marker = new google.maps.Marker({
       position: { lat: Number(bike.lat), lng: Number(bike.long) },
       map: map,
-      title: "title"
+      title: 'title'
     })
     marker.setIcon(icon)
     const popUpContent = `
@@ -180,8 +180,8 @@ export const renderUserHasNoBikeCase = (
     `
     const infoWindow = new google.maps.InfoWindow({
       content: popUpContent,
-    });
-    marker.addListener("click", handleMarkerCallback(infoWindow, marker, map));
+    })
+    marker.addListener('click', handleMarkerCallback(infoWindow, marker, map))
     if (bike.status === BikeStatus.AVAILABLE) {
       infoWindow.addListener('domready', handlePopUpButtonCallback(rentBikeMutate, bike, infoWindow))
     }
@@ -225,11 +225,11 @@ export const BikeMapPage: React.FC = () => {
       const userBike = bikes.find((item) => item.userId === user?.id)
       if (userBike) {
         const markers = renderUserHasBikeCase(bikes, userBike, returnBikeMutate, map)
-        new MarkerClusterer({ markers, map });
+        new MarkerClusterer({ markers, map })
         return
       }
       const markers = renderUserHasNoBikeCase(bikes, rentBikeMutate, map)
-      new MarkerClusterer({ markers, map });
+      new MarkerClusterer({ markers, map })
       return
     }
   }, [map, bikes, user?.id, user, rentBikeMutate, returnBikeMutate])
@@ -241,8 +241,10 @@ export const BikeMapPage: React.FC = () => {
     return <AlertError error={fetchBikesError as string} />
   }
   return (
-    <div data-testid="map-container" style={{ height: '100vh' }} ref={mapRef}></div>
-  );
+    <>
+      <div data-testid="map-container" style={{ height: '100vh' }} ref={mapRef}></div>
+    </>
+  )
 }
 
 export default memo(BikeMapPage)

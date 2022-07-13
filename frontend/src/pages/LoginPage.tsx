@@ -1,15 +1,15 @@
-import { memo, useCallback, useState } from "react";
-import { LoginForm } from "../components/LoginForm";
-import { RegisterForm } from "../components/RegisterForm";
-import {ReactComponent as BikeLogo} from './logo.svg';
+import { memo, useCallback, useState } from 'react'
+import { LoginForm } from '../components/LoginForm'
+import { RegisterForm } from '../components/RegisterForm'
+import {ReactComponent as BikeLogo} from './logo.svg'
 
 export const LoginPage: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(true)
   const switchToLogin = useCallback(() => {
-    setIsLogin(true);
+    setIsLogin(true)
   }, [])
   const switchToRegister = useCallback(() => {
-    setIsLogin(false);
+    setIsLogin(false)
   }, [])
   return (
     <div className="container px-6 mx-auto">
@@ -37,7 +37,7 @@ export const LoginPage: React.FC = () => {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 export default memo(LoginPage)

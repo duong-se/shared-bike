@@ -1,4 +1,4 @@
-import cx from "classnames";
+import cx from 'classnames'
 export type InputProps = {
   name: string
   id?: string
@@ -6,16 +6,16 @@ export type InputProps = {
   type?: 'text' | 'password'
   placeholder?: string
   error?: string
-  onChange?: (e: React.ChangeEvent<any>) => void;
+  onChange?: (e: React.ChangeEvent<unknown>) => void;
   className?: string
   value?: string
 }
 
 export const Input: React.FC<InputProps> = ({
   label,
-  type = "text",
+  type = 'text',
   id,
-  placeholder = "",
+  placeholder = '',
   name,
   error,
   onChange,
@@ -35,7 +35,7 @@ export const Input: React.FC<InputProps> = ({
         name={name}
         id={id}
         placeholder={placeholder}
-        className={cx("input input-bordered w-full", { "input-error": error }, className)}
+        className={cx('input input-bordered w-full', { 'input-error': error }, className)}
       />
       {error && (
         <label className="label">

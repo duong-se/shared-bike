@@ -1,10 +1,10 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
-import { BrowserRouter } from "react-router-dom"
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { BrowserRouter } from 'react-router-dom'
 import { RegisterForm, onSuccessHandler } from './RegisterForm'
-import * as AuthProvider from "../hooks/AuthProvider"
+import * as AuthProvider from '../hooks/AuthProvider'
 import { UseMutationResult } from 'react-query'
 import { RegisterResponse, RegisterVariables } from '../typings/types'
-import * as useUsers from "../hooks/useUsers"
+import * as useUsers from '../hooks/useUsers'
 
 describe('RegisterForm', () => {
   it('should run corect', async () => {
@@ -71,12 +71,12 @@ describe('RegisterForm', () => {
     const fn = onSuccessHandler(mockSetUser, mockNavigate)
     fn({ accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJ0ZXN0MSIsIm5hbWUiOiJUZXN0IFVzZXIiLCJwZXJtaXNzaW9ucyI6bnVsbCwiZXhwIjoxNjU3MzUyODM0fQ.jU5yp2y-3H-dxXP1hdDW-FYEYv5F9GhAVDCbafphUzI' })
     expect(mockSetUser).toBeCalledWith({
-      "exp": 1657352834,
-      "id": 1,
-      "name": "Test User",
-      "permissions": null,
-      "username": "test1",
+      'exp': 1657352834,
+      'id': 1,
+      'name': 'Test User',
+      'permissions': null,
+      'username': 'test1',
     })
-    expect(mockNavigate).toBeCalledWith('/dashboard')
+    expect(mockNavigate).toBeCalledWith('/dashboard', { replace: true })
   })
 })

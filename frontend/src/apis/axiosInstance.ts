@@ -1,52 +1,51 @@
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
-import { commonHeaders, tokenKey } from "../constants/constants";
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
+import { commonHeaders, tokenKey } from '../constants/constants'
 
 export enum HTTP_STATUS {
-  UNAUTHORIZED = 403,
+  UNAUTHORIZED = 401,
   OK = 200,
 }
 
 export const axiosApiInstance = axios.create({
   headers: commonHeaders,
-});
+})
 
-export const handleInterceptRequestError = (error: any) => {
-  throw error;
+export const handleInterceptRequestError = (error: unknown) => {
+  throw error
 }
 
-export const handleInterceptConfig =  (config: AxiosRequestConfig<any>) => {
-  const token = localStorage.getItem(tokenKey);
+export const handleInterceptConfig =  (config: AxiosRequestConfig<unknown>) => {
+  const token = localStorage.getItem(tokenKey)
   if (!token) {
-    return config;
+    return config
   }
   config.headers = {
     ...config.headers,
     Authorization: `Bearer ${token}` as string,
-  };
-  return config;
+  }
+  return config
 }
 
 axiosApiInstance.interceptors.request.use(
   handleInterceptConfig,
   handleInterceptRequestError
-);
+)
 
-export const handleInterceptResponse = (response: AxiosResponse<any, any>) => {
-  return response;
+export const handleInterceptResponse = (response: AxiosResponse<unknown, unknown>) => {
+  return response
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const handleInterceptResponseError = (error: any) => {
   if (error?.response?.status === HTTP_STATUS.UNAUTHORIZED) {
-    localStorage.clear();
-    window.location.href = "/";
+    localStorage.clear()
+    window.location.href = '/'
   }
-  if(error instanceof AxiosError) {
-    throw new Error(error.response?.data)
-  }
-  throw error;
+  const errorMessage = error.response?.data ?? error.message
+  throw new Error(errorMessage)
 }
 
 axiosApiInstance.interceptors.response.use(
   handleInterceptResponse,
   handleInterceptResponseError,
-);
+)

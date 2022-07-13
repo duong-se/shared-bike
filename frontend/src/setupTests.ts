@@ -2,14 +2,14 @@
 // allows you to do things like:
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom'
 
 Object.defineProperty(window, 'sharedBike', {
   value: {
     config: {
-      baseUrl: "http://localhost:3000/api/v1",
+      baseUrl: 'http://localhost:3000/api/v1',
       appEnv: 'development',
       googleMapApiKey: 'string'
     }
   }
-});
+})

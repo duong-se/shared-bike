@@ -22,8 +22,8 @@ export type ReturnBikeVariables = {
 }
 
 export enum BikeStatus {
-  RENTED = "rented",
-  AVAILABLE = "available"
+  RENTED = 'rented',
+  AVAILABLE = 'available'
 }
 
 export type Bike = {
