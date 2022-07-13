@@ -15,7 +15,7 @@ describe('LoginForm', () => {
     const mockMutate = jest.fn()
     const mockOnSuccess = jest.fn()
     jest.spyOn(useUsers, 'useLogin').mockReturnValue({
-      isLoading: true,
+      isLoading: false,
       mutate: mockMutate,
       error: '',
       isError: false,
@@ -43,7 +43,7 @@ describe('LoginForm', () => {
     })
   })
 
-  it('should show errors', async () => {
+  it('should show form errors', async () => {
     const mockSetUser = jest.fn()
     jest.spyOn(AuthProvider, 'useAuth').mockReturnValue({
       setUser: mockSetUser
@@ -51,7 +51,33 @@ describe('LoginForm', () => {
     const mockMutate = jest.fn()
     const mockOnSuccess = jest.fn()
     jest.spyOn(useUsers, 'useLogin').mockReturnValue({
-      isLoading: true,
+      isLoading: false,
+      mutate: mockMutate,
+      error: 'Network Error',
+      isError: true,
+      onSuccess: mockOnSuccess
+    } as unknown as UseMutationResult<LoginResponse, unknown, LoginVariables, unknown>)
+    const mockProps = {
+      onClickRegister: jest.fn(),
+    }
+    render(<LoginForm {...mockProps} />, { wrapper: BrowserRouter })
+    const buttons = screen.getAllByRole('button')
+    fireEvent.click(buttons[0])
+    waitFor(() => {
+      const networkError = screen.getByText('Network Error')
+      expect(networkError).toBeInTheDocument()
+    })
+  })
+
+  it('should show error after submit', async () => {
+    const mockSetUser = jest.fn()
+    jest.spyOn(AuthProvider, 'useAuth').mockReturnValue({
+      setUser: mockSetUser
+    })
+    const mockMutate = jest.fn()
+    const mockOnSuccess = jest.fn()
+    jest.spyOn(useUsers, 'useLogin').mockReturnValue({
+      isLoading: false,
       mutate: mockMutate,
       error: '',
       isError: false,

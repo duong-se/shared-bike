@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { tokenKey } from '../constants/constants'
-import { AuthProvider, useAuth } from './AuthProvider'
+import { AuthProvider, noop, useAuth } from './AuthProvider'
 
 describe('AuthProvider', () => {
   it('should run correctly and show user', async () => {
@@ -24,5 +24,12 @@ describe('AuthProvider', () => {
     localStorage.clear()
     const { container } = render(<AuthProvider><MockComponent/></AuthProvider>)
     expect(container).toMatchSnapshot()
+  })
+})
+
+describe('noop', () => {
+  it('should return null', () => {
+    const result = noop()
+    expect(result).toBeNull()
   })
 })

@@ -9,8 +9,10 @@ type AuthContextType = {
   user?: User
 }
 
+export const noop = () => null
+
 const AuthContext = React.createContext<AuthContextType>({
-  setUser: () => { return null },
+  setUser: noop,
   user: undefined,
 })
 

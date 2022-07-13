@@ -49,7 +49,7 @@ describe('RegisterForm', () => {
     })
   })
 
-  it('should show error', async () => {
+  it('should show form errors', async () => {
     const mockSetUser = jest.fn()
     jest.spyOn(AuthProvider, 'useAuth').mockReturnValue({
       setUser: mockSetUser
@@ -57,7 +57,7 @@ describe('RegisterForm', () => {
     const mockMutate = jest.fn()
     const mockOnSuccess = jest.fn()
     jest.spyOn(useUsers, 'useRegister').mockReturnValue({
-      isLoading: true,
+      isLoading: false,
       mutate: mockMutate,
       error: '',
       isError: false,
@@ -78,6 +78,32 @@ describe('RegisterForm', () => {
       expect(confirmPasswordError).toBeInTheDocument()
       const nameError = screen.getByText('Name is required')
       expect(nameError).toBeInTheDocument()
+    })
+  })
+
+  it('should show error after submit form', async () => {
+    const mockSetUser = jest.fn()
+    jest.spyOn(AuthProvider, 'useAuth').mockReturnValue({
+      setUser: mockSetUser
+    })
+    const mockMutate = jest.fn()
+    const mockOnSuccess = jest.fn()
+    jest.spyOn(useUsers, 'useRegister').mockReturnValue({
+      isLoading: false,
+      mutate: mockMutate,
+      error: 'Network Error',
+      isError: true,
+      onSuccess: mockOnSuccess
+    } as unknown as UseMutationResult<RegisterResponse, unknown, RegisterVariables, unknown>)
+    const mockProps = {
+      onClickLogin: jest.fn(),
+    }
+    render(<RegisterForm {...mockProps} />, { wrapper: BrowserRouter })
+    const buttons = screen.getAllByRole('button')
+    fireEvent.click(buttons[0])
+    waitFor(() => {
+      const networkError = screen.getByText('Network Error')
+      expect(networkError).toBeInTheDocument()
     })
   })
 
