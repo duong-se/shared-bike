@@ -35,10 +35,145 @@
 
 ### User
 #### Register
-#### Login
+1. Sequence Diagram  
+    ![register sequence](./img/registerSequenceDiagram.png "Register Sequence Diagram")
+    ```ruby
+        @startuml
+        actor       User
+        boundary    UserHandler
+        control     UserUseCase
+        entity      UserRepository
+        entity      UserRepository
+        database    Database
 
+        User -> UserHandler
+        alt not authorized
+          UserHandler --> User: ErrUnauthorizeError
+        else
+          UserHandler -> UserUseCase: get user existed or not
+          UserUseCase -> UserRepository: get user existed or not
+          UserRepository -> Database: get user existed or not
+          Database --> UserRepository: domain.User, error
+          UserRepository --> UserUseCase: domain.User, error
+          alt error not nil and not ErrRecordNotFound
+            UserUseCase --> UserHandler: ErrInternalServerError
+            UserHandler --> User: internal server error
+          else user existed
+            UserUseCase --> UserHandler: ErrUserAlreadyExisted
+            UserHandler --> User: internal server error
+          else
+            UserUseCase -> UserRepository: create new user
+            UserRepository -> Database: create new user
+            Database --> UserRepository: error
+            UserRepository --> UserUseCase: error
+            alt error not nil
+              UserUseCase --> UserHandler: ErrInternalServerError
+              UserHandler --> User: internal server error
+            else
+              UserUseCase --> UserHandler: domain.UserDTO
+              UserHandler --> User: accessToken string
+            end
+          end
+        end
+        @enduml
+    ```
+1. Params
+    - body  
+      ```json
+      {
+        "password": "mypassword",
+        "username": "myusername"
+      }
+      ```
+1. Headers
+    - `Content-type`: application/json
+1. Response
+    - Status 200  
+        ```json
+          {
+            "accessToken": "string"
+          }
+        ```
+    - Status 400  
+        `invalid body`
+    - Status 404  
+        `username or password is wrong`
+    - Status 500  
+        `internal server error`
+1. Response property
+    - `id` is a unique id of bike
+    - `lat` is latitude
+    - `long` is longitude
+    - `name` is the name of the bike
+    - `userId` is renter id
+#### Login (POST)
+1. Sequence Diagram  
+    ![login sequence](./img/loginSequenceDiagram.png "Login Sequence Diagram")
+    ```ruby
+      @startuml
+      actor       User
+      boundary    UserHandler
+      control     UserUseCase
+      entity      UserRepository
+      entity      UserRepository
+      database    Database
+
+      User -> UserHandler
+      alt not authorized
+        UserHandler --> User: ErrUnauthorizeError
+      else
+        UserHandler -> UserUseCase: get user by username
+        UserUseCase -> UserRepository: get user by username
+        UserRepository -> Database: get user by username
+        Database --> UserRepository: domain.User, error
+        UserRepository --> UserUseCase: domain.User, error
+        alt user not found
+          UserUseCase --> UserHandler: ErrUserLoginNotFound
+          UserHandler --> User: username or password is wrong
+        else error not nil
+          UserUseCase --> UserHandler: ErrInternalServerError
+          UserHandler --> User: internal server error
+        else password not valid
+          UserUseCase --> UserHandler: ErrUserLoginNotFound
+          UserHandler --> User: username or password is wrong
+        else
+          UserUseCase --> UserHandler: domain.UserDTO
+          UserHandler --> User: token string
+        end
+      end
+      @enduml
+    ```
+1. Params
+    - body  
+      ```json
+      {
+        "password": "mypassword",
+        "username": "myusername"
+      }
+      ```
+1. Headers
+    - `Content-type`: application/json
+1. Response
+    - Status 200  
+        ```json
+          {
+            "accessToken": "string"
+          }
+        ```
+    - Status 400  
+        `invalid body`
+    - Status 404  
+        `username or password is wrong`
+    - Status 500  
+        `internal server error`
+1. Response property
+    - `id` is a unique id of bike
+    - `lat` is latitude
+    - `long` is longitude
+    - `name` is the name of the bike
+    - `userId` is renter id
 ### Bike
-#### Get All Bikes
+#### Get All Bikes (GET)
 1. Sequence Diagram  
     ![bikes sequence](./img/getAllBikesSequenceDiagram.png "Get All Bike Sequence Diagram")
     ```ruby
@@ -106,7 +241,7 @@
     - `long` is longitude
     - `name` is the name of the bike
     - `userId` is renter id
-#### Rent Bike
+#### Rent Bike (PATCH)
 1. Sequence Diagram  
     ![rent bike sequence](./img/rentBikeSequenceDiagram.png "Rent A Bike Sequence Diagram")
       ```ruby
@@ -201,7 +336,7 @@
     - `name` is the name of the bike
     - `userId` is renter id
 
-#### Return Bike
+#### Return Bike (PATCH)
 1. Sequence Diagram  
     ![return bike sequence](./img/returnBikeSequenceDiagram.png "Return A Bike Sequence Diagram")
     ```ruby
@@ -275,6 +410,34 @@
     - `long` is longitude
     - `name` is the name of the bike
     - `userId` is renter id
+### Error code
+Rule for error code is `e{HTTP_STATUS}{SEQUENCE} MESSAGE`
+1. e5000 internal server error
+#### 401 status
+1. e4010 unauthorized
+#### 400 status
+1. e4000 cannot rent because the bike is rented
+1. e4001 cannot rent because you have already rented a bike
+1. e4002 cannot return because the bike is available
+1. e4003 cannot return because the bike is not yours
+1. e4004 user already existed
+#### 404
+1. e4040 bike not found
+1. e4041 username or password is wrong
+1. e4042 user does not exist or inactive
+
+### Log
+#### How to log
+For log convention, I use custom logger which I implement the interface in `customlogger` for adding unique request id to the log. It'll be helpful when we have problems with the request we can trace the log from `requestId` for debugging
+
+1. Error `"[Service.Method] message", error, args...`
+1. Info `"[Service.Method] message", args...`
+#### Log event
+I try to log the event from:
+1. start and end handler methods
+1. start and end in use cases methods
+1. log the error and return a wrapper error message for user to make sure the internal log error or sensitive data not show to the customer
+
 ## Tech stacks
 ### Backend
 1. Golang
@@ -286,6 +449,9 @@
 1. React for frontend
 1. Jest for testing
 
+### Tools
+Sequence Diagram http://www.plantuml.com
+4C Diagram https://online.visual-paradigm.com/
 
 ## Improvement
 For API to get all bikes we'll improve it to get bikes only near locations of the users by using lat and long calculation
