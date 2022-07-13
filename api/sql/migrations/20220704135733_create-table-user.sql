@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS `user` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `username` varchar(128) NOT NULL DEFAULT '',
-  `password` varchar(128) NOT NULL DEFAULT '',
+  `password` varchar(255) NOT NULL DEFAULT '',
   `name` varchar(128) NOT NULL DEFAULT '',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

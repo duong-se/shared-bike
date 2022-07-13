@@ -3,8 +3,8 @@
 ### By docker-compose
 1. Run command `docker-compose build`
 1. Run command `docker-compose up -d frontend`
-1. Waiting for all services to started
-1. Restart dev_api by running `docker restart dev_api` for migration of the first time
+1. Waiting for all services to start
+1. Restart dev_api by running `docker restart dev_api` for migration for the first time
 1. Wait for the project to start and access the frontend via `http://localhost:3000` and the API will serve on `http://localhost:8000`
 ### By machine environment
 #### Start the API
@@ -26,13 +26,160 @@
 
 ## High-level solution
 ### Context
+For the Services context, the user can register, rent and return the bikes
+![context](./img/context.png "Context")
+```ruby
+@startuml
+!include https://raw.githubusercontent.com/kirchsth/C4-PlantUML/extended/C4_Context.puml
+
+Person(user, "User", "A user want to rent and use share bike")
+System(shareBikeSystem, "Share Bike", "Allow user to register, login, rent, return the bike")
+System_Ext(gpsSystem, "Bike Location", "System manage bike location when user return")
+
+Rel(user, shareBikeSystem, "uses", "https")
+Rel(gpsSystem, shareBikeSystem, "uses", "broker message")
+Rel(user, gpsSystem, "uses", "https")
+@enduml
+```
 
 ### Containers
+#### Props
+1. From the beginning, we can consider removing the cache services if the traffic is too little
+1. In case a lot of traffic we can consider using the Redis cache for read DB
+1. We can consider to separate the users' table and logic to authentication service depending on the monitoring and traffic and team structure of the company
+1. The reason why I choose the event-driven design for communication between services is to avoid the microservices hell if we scale the teams and services in the company, so everything just subscribes and produces the message to Kafka and we can use schema registry for type checking and have agreements between services,
+#### Cons
+1. When we use the Kafka cluster for communication if the Kafka services have problems, the entire system will be broken
+1. We need to have the Kafka cluster so the cost for the company is higher than using API or GRPC for communication between the services.
+
+**Note** Assume that there're a lot of users and traffic and we need to cache for the services, and the team should manage the authentication
+![container](./img/container.png "Container")
+```ruby
+@startuml
+!include https://raw.githubusercontent.com/kirchsth/C4-PlantUML/extended/C4_Container.puml
+
+Person(user, "User", "A user want to rent and use share bike")
+Container(cdn, "CDN", "Cloudfront")
+Container(webapp, "Single Page App", "ReactJS", "Provide functionalities login, rent, return the bike")
+Container_Ext(mobile, "Mobile", "Android/iOS", "Provide functionalities login, rent, return the bike")
+Container_Ext(apiGateway, "Gateway", "AWS Gateway", "Provide API gateway to protect services")
+System_Boundary(c1, "Share Bike") {
+  Container(apiKafkaSubscription, "Subscription", "Golang", "Subscribe the message from Kafka and update bike location to database")
+  Container(apiApplication, "Application", "Echo Golang", "Provide API login, register for users and get, rent, return bike")
+  ContainerDb(db, "Database", "MySQL Cluster", "Holds product, order and invoice information")
+  ContainerDb(cache, "Cache", "Redis", "Hold information which read too much")
+}
+SystemQueue_Ext(kafka, "Kafka Cluster", "Message Broker")
+System_Ext(locationService, "Bike Location", "System manage bike location when user return")
+
+Rel(user, cdn, "uses", "https")
+Rel(cdn, webapp, "uses", "https")
+Rel(user, mobile, "uses", "https")
+Rel(webapp, apiGateway, "uses", "json/https")
+Rel(mobile, apiGateway, "uses", "json/https")
+Rel(apiGateway, locationService, "uses", "https")
+Rel(apiGateway, apiApplication, "uses", "https")
+Rel(apiApplication, cache, "uses", "go-redis", "get bikes, user and location")
+Rel(apiApplication, db, "uses", "gorm", "get bikes, user and location in case cache not found")
+Rel(apiKafkaSubscription, db, "uses", "gorm", "update location")
+Rel(apiKafkaSubscription, cache, "uses", "gorm", "update location")
+Rel(apiKafkaSubscription, kafka, "uses", "subscribe message")
+Rel(locationService, kafka, "uses", "produce message")
+@enduml
+```
 
 ### Components
-## DB Diagram
-## Detail API design
+#### Props
+![component](./img/component.png "Component")
+1. I choose the app as Clean Architecture, so the code is easy to maintain and scalable. So let's see in the future we want to separate users' APIs to new services we just need to copy the `pkg/users` and change the `user_repository.go` and implement the interface which uses cases defined and add `main.go` and hook to users' handler so we have new services for authentication only
+1. Avoiding cycle import
 
+#### Cons
+1. Indirect problem
+1. Have to write more layers and testing for each layer
+
+```ruby
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "User", "A user want to rent and use share bike")
+Container(cdn, "CDN", "Cloudfront")
+Container(webapp, "Single Page App", "ReactJS", "Provide functionalities login, rent, return the bike")
+Container_Ext(mobile, "Mobile", "Android/iOS", "Provide functionalities login, rent, return the bike")
+Container_Ext(apiGateway, "Gateway", "AWS Gateway", "Provide API gateway to protect services")
+ContainerDb(db, "Database", "MySQL Cluster", "Holds product, order and invoice information")
+ContainerDb(cache, "Cache", "Redis", "Hold information which read too much")
+System_Boundary(c1, "Share Bike") {
+  Component(middlewareHandler, "Middleware", "Echo", "Add Request ID, Cors, Authentication")
+  Component(apiKafkaSubscriptionHandler, "Subscription", "Golang", "Subscribe the message from Kafka and update bike location to database")
+  Component(userHandler, "User Handler", "Echo", "Allow user to register, login")
+  Component(userUseCase, "User UseCase", "Golang", "Provide functionalities and logic for register and login")
+  Component(userRepository, "User Repository", "Golang", "Provide connector to DB for User")
+  Component(bikeHandler, "Bike Handler", "Echo", "Allow user to get, rent, return bikes")
+  Component(bikeUseCase, "Bike UseCase", "Golang", "Provide functionalities and logic for get, rent and return bike")
+  Component(bikeRepository, "Bike Repository", "Golang", "Provide connector to DB for Bike")
+}
+SystemQueue_Ext(kafka, "Kafka Cluster", "Message Broker")
+System_Ext(locationService, "Bike Location", "System manage bike location when user return")
+
+Rel(user, cdn, "uses", "https")
+Rel(cdn, webapp, "uses", "https")
+Rel(user, mobile, "uses", "https")
+Rel(webapp, apiGateway, "uses", "json/https")
+Rel(mobile, apiGateway, "uses", "json/https")
+Rel(apiGateway, locationService, "uses", "https")
+Rel(apiGateway, middlewareHandler, "uses", json/https)
+
+Rel(middlewareHandler, userHandler, "uses")
+Rel(userHandler, userUseCase, "uses")
+Rel(userUseCase, userRepository, "uses")
+Rel(userRepository, db, "uses", "read and write")
+Rel(userRepository, cache, "uses", "read")
+
+Rel(middlewareHandler, bikeHandler, "uses")
+Rel(bikeHandler, bikeUseCase, "uses")
+Rel(bikeUseCase, bikeRepository, "uses")
+Rel(bikeUseCase, userRepository, "uses", "read user information")
+Rel(bikeRepository, db, "uses", "read and write")
+Rel(bikeRepository, cache, "uses", "read")
+
+Rel(locationService, kafka, "uses", "produce message")
+
+Rel(apiKafkaSubscriptionHandler, kafka, "uses", "subscribe message")
+Rel(apiKafkaSubscriptionHandler, bikeRepository, "uses", "update location")
+
+@enduml
+```
+## DB Diagram
+The reason why in the code I don't add the foreign is I want to move the logic from the database to the application layer, because the application layer can scale easier than DB. For the future, we want to separate two services users and bikes it'll be easier for the team
+
+![db Diagram](./img/dbDiagram.png "DB Diagram")
+```sql
+Table bike as B {
+  id bigint [pk, increment] // auto-increment
+  name varchar(128)
+  lat decimal(8,6)
+  long decimal(9,6)
+  status varchar(128)
+  user_id bigint [default: null]
+  created_at datetime
+  updated_at datetime
+  deleted_at datetime [default: null]
+}
+
+Table user as U {
+  id bigint [pk, increment]
+  username varchar(128)
+  password varchar(255)
+  name varchar(128)
+  created_at datetime
+  updated_at datetime
+  deleted_at datetime [default: null]
+ }
+
+Ref: B.user_id > U.id
+```
+## Detail API design
 ### User
 #### Register
 1. Sequence Diagram  
