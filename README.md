@@ -597,8 +597,8 @@ I try to log the event from:
 1. Jest for testing
 
 ### Tools
-Sequence Diagram http://www.plantuml.com
-4C Diagram https://online.visual-paradigm.com/
+1. Diagram http://www.plantuml.com
+1. DB Diagram https://dbdiagram.io/d
 
 ## Improvement
 For API to get all bikes we'll improve it to get bikes only near locations of the users by using lat and long calculation
