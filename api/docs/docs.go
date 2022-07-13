@@ -276,10 +276,6 @@ const docTemplate = `{
                 "userId": {
                     "type": "integer",
                     "example": 1
-                },
-                "usernameOfRenter": {
-                    "type": "string",
-                    "example": "bob"
                 }
             }
         },

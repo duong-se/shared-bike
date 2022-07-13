@@ -59,12 +59,11 @@ type RentOrReturnRequestPayload struct {
 }
 
 type BikeDTO struct {
-	ID               int64      `json:"id" example:"1"`
-	Name             string     `json:"name" example:"henry"`
-	Lat              string     `json:"lat" example:"50.119504"`
-	Long             string     `json:"long" example:"8.638137"`
-	Status           BikeStatus `json:"status" example:"rented"`
-	UserID           int64      `json:"userId" example:"1"`
-	NameOfRenter     string     `json:"nameOfRenter" example:"Bob"`
-	UsernameOfRenter string     `json:"usernameOfRenter" example:"bob"`
+	ID           int64      `json:"id" example:"1"`
+	Name         string     `json:"name" example:"henry"`
+	Lat          string     `json:"lat" example:"50.119504"`
+	Long         string     `json:"long" example:"8.638137"`
+	Status       BikeStatus `json:"status" example:"rented"`
+	UserID       int64      `json:"userId" example:"1"`
+	NameOfRenter string     `json:"nameOfRenter" example:"Bob"`
 }

@@ -53,7 +53,6 @@ func (u *useCaseImpl) transformBikeDTOList(bikes *[]domain.Bike, usersMap map[in
 		rentedBike := bike.ToDTO()
 		if (bike.UserID.Valid && usersMap[bike.UserID.Int64] != domain.User{}) {
 			rentedBike.NameOfRenter = usersMap[bike.UserID.Int64].Name
-			rentedBike.UsernameOfRenter = usersMap[bike.UserID.Int64].Username
 		}
 		results = append(results, rentedBike)
 	}
@@ -154,7 +153,6 @@ func (u *useCaseImpl) Rent(ctx context.Context, body domain.RentOrReturnRequestP
 	result := updatedBike.ToDTO()
 	if currentUser != nil {
 		result.NameOfRenter = currentUser.Name
-		result.UsernameOfRenter = currentUser.Username
 	}
 	return result, nil
 }

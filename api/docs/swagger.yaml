@@ -23,9 +23,6 @@ definitions:
       userId:
         example: 1
         type: integer
-      usernameOfRenter:
-        example: bob
-        type: string
     type: object
   domain.Credentials:
     properties:

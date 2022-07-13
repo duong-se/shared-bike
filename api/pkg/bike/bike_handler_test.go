@@ -56,34 +56,31 @@ func (s *BikeHandlerTestSuite) TestGetAll_Success() {
 
 		mockResult = []domain.BikeDTO{
 			{
-				ID:               1,
-				Lat:              "50.119504",
-				Long:             "8.638137",
-				Name:             "testName",
-				Status:           domain.BikeStatusAvailable,
-				UserID:           0,
-				NameOfRenter:     "",
-				UsernameOfRenter: "",
+				ID:           1,
+				Lat:          "50.119504",
+				Long:         "8.638137",
+				Name:         "testName",
+				Status:       domain.BikeStatusAvailable,
+				UserID:       0,
+				NameOfRenter: "",
 			},
 			{
-				ID:               1,
-				Lat:              "50.119229",
-				Long:             "8.640020",
-				Name:             "testName",
-				Status:           domain.BikeStatusRented,
-				UserID:           mockUserID,
-				NameOfRenter:     mockUserResult[0].Name,
-				UsernameOfRenter: mockUserResult[0].Username,
+				ID:           1,
+				Lat:          "50.119229",
+				Long:         "8.640020",
+				Name:         "testName",
+				Status:       domain.BikeStatusRented,
+				UserID:       mockUserID,
+				NameOfRenter: mockUserResult[0].Name,
 			},
 			{
-				ID:               1,
-				Lat:              "50.120452",
-				Long:             "8.650507",
-				Name:             "testName",
-				Status:           domain.BikeStatusAvailable,
-				UserID:           0,
-				NameOfRenter:     "",
-				UsernameOfRenter: "",
+				ID:           1,
+				Lat:          "50.120452",
+				Long:         "8.650507",
+				Name:         "testName",
+				Status:       domain.BikeStatusAvailable,
+				UserID:       0,
+				NameOfRenter: "",
 			},
 		}
 	)
@@ -92,7 +89,7 @@ func (s *BikeHandlerTestSuite) TestGetAll_Success() {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := s.echo.NewContext(req, rec)
-	respBody := `[{"id":1,"name":"testName","lat":"50.119504","long":"8.638137","status":"available","userId":0,"nameOfRenter":"","usernameOfRenter":""},{"id":1,"name":"testName","lat":"50.119229","long":"8.640020","status":"rented","userId":1,"nameOfRenter":"testName","usernameOfRenter":"testUsername"},{"id":1,"name":"testName","lat":"50.120452","long":"8.650507","status":"available","userId":0,"nameOfRenter":"","usernameOfRenter":""}]
+	respBody := `[{"id":1,"name":"testName","lat":"50.119504","long":"8.638137","status":"available","userId":0,"nameOfRenter":""},{"id":1,"name":"testName","lat":"50.119229","long":"8.640020","status":"rented","userId":1,"nameOfRenter":"testName"},{"id":1,"name":"testName","lat":"50.120452","long":"8.650507","status":"available","userId":0,"nameOfRenter":""}]
 `
 	c.SetPath("/bikes")
 	s.NoError(s.handlerImpl.GetAllBike(c))
@@ -126,16 +123,14 @@ func (s *BikeHandlerTestSuite) TestRent_Success() {
 		userID      = int64(1)
 		mockContext = context.TODO()
 		name        = "mockName"
-		username    = "mockUserName"
 		mockResult  = domain.BikeDTO{
-			ID:               1,
-			Name:             "testName",
-			Lat:              "50.119504",
-			Long:             "8.638137",
-			Status:           domain.BikeStatusRented,
-			UserID:           userID,
-			NameOfRenter:     name,
-			UsernameOfRenter: username,
+			ID:           1,
+			Name:         "testName",
+			Lat:          "50.119504",
+			Long:         "8.638137",
+			Status:       domain.BikeStatusRented,
+			UserID:       userID,
+			NameOfRenter: name,
 		}
 		mockInput = domain.RentOrReturnRequestPayload{
 			UserID: 1,
@@ -151,7 +146,7 @@ func (s *BikeHandlerTestSuite) TestRent_Success() {
 		Valid:  true,
 		Claims: &domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"},
 	})
-	respBody := `{"id":1,"name":"testName","lat":"50.119504","long":"8.638137","status":"rented","userId":1,"nameOfRenter":"mockName","usernameOfRenter":"mockUserName"}
+	respBody := `{"id":1,"name":"testName","lat":"50.119504","long":"8.638137","status":"rented","userId":1,"nameOfRenter":"mockName"}
 `
 	c.SetPath("/bikes/:id/rent")
 	c.SetParamNames("id")
@@ -212,13 +207,12 @@ func (s *BikeHandlerTestSuite) TestReturn_Success() {
 	var (
 		mockContext = context.TODO()
 		mockResult  = domain.BikeDTO{
-			ID:               1,
-			Lat:              "50.119504",
-			Long:             "8.638137",
-			Status:           domain.BikeStatusAvailable,
-			UserID:           0,
-			NameOfRenter:     "",
-			UsernameOfRenter: "",
+			ID:           1,
+			Lat:          "50.119504",
+			Long:         "8.638137",
+			Status:       domain.BikeStatusAvailable,
+			UserID:       0,
+			NameOfRenter: "",
 		}
 		mockInput = domain.RentOrReturnRequestPayload{
 			UserID: 1,
@@ -234,7 +228,7 @@ func (s *BikeHandlerTestSuite) TestReturn_Success() {
 		Valid:  true,
 		Claims: &domain.Claims{ID: 1, Name: "TestUser", Username: "TestUserName"},
 	})
-	respBody := `{"id":1,"name":"","lat":"50.119504","long":"8.638137","status":"available","userId":0,"nameOfRenter":"","usernameOfRenter":""}
+	respBody := `{"id":1,"name":"","lat":"50.119504","long":"8.638137","status":"available","userId":0,"nameOfRenter":""}
 `
 	c.SetPath("/bikes/:id/return")
 	c.SetParamNames("id")

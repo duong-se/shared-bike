@@ -14,3 +14,7 @@ test:
 	@go test -v -race ./...
 swagger:
 	@swag init --parseDependency --parseDepth 1
+migrations:
+	@goose -dir ./sql/migrations mysql $DB_CONNECTION_STRING up
+seeders:
+	@goose -dir ./sql/seeders mysql $DB_CONNECTION_STRING up
