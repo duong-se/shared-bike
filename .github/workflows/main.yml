@@ -7,7 +7,7 @@ on:
 
 jobs:
   frontend_pull_request:
-    name: Frontend Pull Request
+    name: Frontend
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -44,6 +44,7 @@ jobs:
         run: yarn build
 
   api_pull_request:
+    name: API
     runs-on: ubuntu-latest
     defaults:
       run:
