@@ -56,9 +56,8 @@ Rel(user, gpsSystem, "uses", "https")
 ```
 
 ### Containers
-
-```ruby
 ![container](./img/containerFirstPhrase.png "Container")
+```ruby
 @startuml
 !include https://raw.githubusercontent.com/kirchsth/C4-PlantUML/extended/C4_Container.puml
 Person(user, "User", "A user want to rent and use share bike")
