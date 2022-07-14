@@ -1,5 +1,5 @@
 # Shared Bike system
-## How to start projects
+## How to start the project
 ### By docker-compose
 1. Run command `docker-compose build`
 1. Run command `docker-compose up -d frontend`
