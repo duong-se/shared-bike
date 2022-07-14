@@ -12,8 +12,9 @@
 1. Start the MySQL `brew services start mysql`
 1. Go to `api` folder and run the command `make install`
 1. Copy `.env.sample` to `.env` file and change the `DB_CONNECTION_STRING` as your local config
+1. Run command `export DB_CONNECTION_STRING = <value>` for migrations
 1. Run DB migration command `goose -dir ./sql/migrations mysql $DB_CONNECTION_STRING up`
-1. Run DB seeder command `goose -dir ./sql/migrations mysql $DB_CONNECTION_STRING up`
+1. Run DB seeder command `goose -dir ./sql/seeders mysql $DB_CONNECTION_STRING up`
 1. Run `make start` for starting the API service
 1. Access the service swagger doc via `http://localhost:8000/swagger/index.html`
 
@@ -26,7 +27,7 @@
 
 ## High-level solution
 ### Context
-For the Services context, the user can register, rent and return the bikes
+For the Services context, the user can register, rent and return the bikes' information
 ![context](./img/context.png "Context")
 ```ruby
 @startuml
@@ -43,75 +44,51 @@ Rel(user, gpsSystem, "uses", "https")
 ```
 
 ### Containers
-#### Props
-1. From the beginning, we can consider removing the cache services if the traffic is too little
-1. In case a lot of traffic we can consider using the Redis cache for read DB
-1. We can consider to separate the users' table and logic to authentication service depending on the monitoring and traffic and team structure of the company
-1. The reason why I choose the event-driven design for communication between services is to avoid the microservices hell if we scale the teams and services in the company, so everything just subscribes and produces the message to Kafka and we can use schema registry for type checking and have agreements between services,
-#### Cons
-1. When we use the Kafka cluster for communication if the Kafka services have problems, the entire system will be broken
-1. We need to have the Kafka cluster so the cost for the company is higher than using API or GRPC for communication between the services.
 
-**Note** Assume that there're a lot of users and traffic and we need to cache for the services, and the team should manage the authentication
-![container](./img/container.png "Container")
 ```ruby
+![container](./img/containerFirstPhrase.png "Container")
 @startuml
 !include https://raw.githubusercontent.com/kirchsth/C4-PlantUML/extended/C4_Container.puml
-
 Person(user, "User", "A user want to rent and use share bike")
-Container(cdn, "CDN", "Cloudfront")
 Container(webapp, "Single Page App", "ReactJS", "Provide functionalities login, rent, return the bike")
 Container_Ext(mobile, "Mobile", "Android/iOS", "Provide functionalities login, rent, return the bike")
 Container_Ext(apiGateway, "Gateway", "AWS Gateway", "Provide API gateway to protect services")
 System_Boundary(c1, "Share Bike") {
-  Container(apiKafkaSubscription, "Subscription", "Golang", "Subscribe the message from Kafka and update bike location to database")
+  Container(apiKafkaConsumer, "Consumer", "Golang", "Subscribe the message from Kafka and update bike location to database")
   Container(apiApplication, "Application", "Echo Golang", "Provide API login, register for users and get, rent, return bike")
-  ContainerDb(db, "Database", "MySQL Cluster", "Holds product, order and invoice information")
-  ContainerDb(cache, "Cache", "Redis", "Hold information which read too much")
+  ContainerDb(db, "Database", "MySQL Cluster", "Holds user, bike information")
 }
 SystemQueue_Ext(kafka, "Kafka Cluster", "Message Broker")
 System_Ext(locationService, "Bike Location", "System manage bike location when user return")
 
-Rel(user, cdn, "uses", "https")
-Rel(cdn, webapp, "uses", "https")
+Rel(user, webapp, "uses", "https")
 Rel(user, mobile, "uses", "https")
 Rel(webapp, apiGateway, "uses", "json/https")
 Rel(mobile, apiGateway, "uses", "json/https")
 Rel(apiGateway, locationService, "uses", "https")
 Rel(apiGateway, apiApplication, "uses", "https")
-Rel(apiApplication, cache, "uses", "go-redis", "get bikes, user and location")
 Rel(apiApplication, db, "uses", "gorm", "get bikes, user and location in case cache not found")
-Rel(apiKafkaSubscription, db, "uses", "gorm", "update location")
-Rel(apiKafkaSubscription, cache, "uses", "gorm", "update location")
-Rel(apiKafkaSubscription, kafka, "uses", "subscribe message")
+Rel(apiKafkaConsumer, db, "uses", "gorm", "update location")
+Rel(apiKafkaConsumer, kafka, "uses", "subscribe message")
 Rel(locationService, kafka, "uses", "produce message")
 @enduml
 ```
 
 ### Components
-#### Props
-![component](./img/component.png "Component")
-1. I choose the app as Clean Architecture, so the code is easy to maintain and scalable. So let's see in the future we want to separate users' APIs to new services we just need to copy the `pkg/users` and change the `user_repository.go` and implement the interface which uses cases defined and add `main.go` and hook to users' handler so we have new services for authentication only
-1. Avoiding cycle import
-
-#### Cons
-1. Indirect problem
-1. Have to write more layers and testing for each layer
-
+![container](./img/componentFirstPhrase.png "Container")
 ```ruby
 @startuml
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
 
 Person(user, "User", "A user want to rent and use share bike")
-Container(cdn, "CDN", "Cloudfront")
 Container(webapp, "Single Page App", "ReactJS", "Provide functionalities login, rent, return the bike")
 Container_Ext(mobile, "Mobile", "Android/iOS", "Provide functionalities login, rent, return the bike")
 Container_Ext(apiGateway, "Gateway", "AWS Gateway", "Provide API gateway to protect services")
-ContainerDb(db, "Database", "MySQL Cluster", "Holds product, order and invoice information")
-ContainerDb(cache, "Cache", "Redis", "Hold information which read too much")
+ContainerDb(db, "Database", "MySQL Cluster", "Holds user, bike information")
+
 System_Boundary(c1, "Share Bike") {
   Component(middlewareHandler, "Middleware", "Echo", "Add Request ID, Cors, Authentication")
-  Component(apiKafkaSubscriptionHandler, "Subscription", "Golang", "Subscribe the message from Kafka and update bike location to database")
+  Component(apiKafkaConsumerHandler, "Consumer", "Golang", "Subscribe the message from Kafka and update bike location to database")
   Component(userHandler, "User Handler", "Echo", "Allow user to register, login")
   Component(userUseCase, "User UseCase", "Golang", "Provide functionalities and logic for register and login")
   Component(userRepository, "User Repository", "Golang", "Provide connector to DB for User")
@@ -122,8 +99,7 @@ System_Boundary(c1, "Share Bike") {
 SystemQueue_Ext(kafka, "Kafka Cluster", "Message Broker")
 System_Ext(locationService, "Bike Location", "System manage bike location when user return")
 
-Rel(user, cdn, "uses", "https")
-Rel(cdn, webapp, "uses", "https")
+Rel(user, webapp, "uses", "https")
 Rel(user, mobile, "uses", "https")
 Rel(webapp, apiGateway, "uses", "json/https")
 Rel(mobile, apiGateway, "uses", "json/https")
@@ -134,24 +110,27 @@ Rel(middlewareHandler, userHandler, "uses")
 Rel(userHandler, userUseCase, "uses")
 Rel(userUseCase, userRepository, "uses")
 Rel(userRepository, db, "uses", "read and write")
-Rel(userRepository, cache, "uses", "read")
 
 Rel(middlewareHandler, bikeHandler, "uses")
 Rel(bikeHandler, bikeUseCase, "uses")
 Rel(bikeUseCase, bikeRepository, "uses")
 Rel(bikeUseCase, userRepository, "uses", "read user information")
 Rel(bikeRepository, db, "uses", "read and write")
-Rel(bikeRepository, cache, "uses", "read")
 
 Rel(locationService, kafka, "uses", "produce message")
 
-Rel(apiKafkaSubscriptionHandler, kafka, "uses", "subscribe message")
-Rel(apiKafkaSubscriptionHandler, bikeRepository, "uses", "update location")
-
+Rel(apiKafkaConsumerHandler, kafka, "uses", "subscribe message")
+Rel(apiKafkaConsumerHandler, bikeRepository, "uses", "update location")
 @enduml
 ```
+#### Consideration
+1. I structure the app by using clean architecture design, so the code is easy to maintain and scalable. So let's see in the future we want to separate users' APIs to new services we just need to copy the `pkg/users` and change the `user_repository.go` and implement the interface which uses cases defined and add `main.go` and hook to users' handler so we have new services for authentication only
+1. Avoiding cycle import
+1. Indirect problem
+1. Have to write more layers and test for each layer
+
 ## DB Diagram
-The reason why in the code I don't add the foreign is I want to move the logic from the database to the application layer, because the application layer can scale easier than DB. For the future, we want to separate two services users and bikes it'll be easier for the team
+The reason why in the code I don't add the foreign is I want to move the logic from the database to the application layer, because the application layer can scale easier than DB. For the future third phrase, we want to separate two services users and bikes it'll be easier for the team
 
 ![db Diagram](./img/dbDiagram.png "DB Diagram")
 ```sql
@@ -473,7 +452,7 @@ Ref: B.user_id > U.id
           }
         ```
     - Status 400  
-        `invalid bike id | cannot rent because you have already rented a bike | user not exists or inactive | bike not found | cannot rent because bike is rented`
+        `invalid bike id | cannot rent because you have already rented a bike | user is not exists or inactive | bike not found | cannot rent because the bike is rented`
     - Status 500  
         `internal server error`
 1. Response property
@@ -548,7 +527,7 @@ Ref: B.user_id > U.id
           }
         ```
     - Status 400  
-        `invalid bike id | bike not found | cannot return because bike is available | cannot return because bike is not yours`
+        `invalid bike id | bike not found | cannot return because the bike is available | cannot return because the bike is not yours`
     - Status 500  
         `internal server error`
 1. Response property
@@ -571,7 +550,7 @@ Rule for error code is `e{HTTP_STATUS}{SEQUENCE} MESSAGE`
 1. e4005 invalid body
 1. e4006 invalid body
 
-#### 404
+#### 404 Status
 1. e4040 bike not found
 1. e4041 username or password is wrong
 1. e4042 user does not exist or inactive
@@ -586,7 +565,7 @@ For log convention, I use custom logger which I implement the interface in `cust
 I try to log the event from:
 1. start and end handler methods
 1. start and end in use cases methods
-1. log the error and return a wrapper error message for the user to make sure the internal log error or sensitive data not show to the customer
+1. log the error and return a wrapper error message for the user to make sure the internal log error or sensitive data not shown to the customer
 
 ## Tech stacks
 ### Backend
@@ -649,7 +628,219 @@ Time:        5.716 s
 Ran all test suites.
 ```
 
-## Improvement
-1. For API to get all bikes we'll improve it to get bikes only near locations of the users by using lat and long calculation
-1. To scale the app we'll use caching and CDN layer
-1. To scale the team we can separate the user and bike into two services
+## Next Phrase
+### 2nd phrase
+In case a lot of traffic we can consider to upgrade
+1. Add Redis cache layer for the service
+1. Add CDN for caching frontend
+1. Modify the getBikes API for getting the bikes near the user location  
+    ![map](./img/map.jpg "Map")
+
+#### Container
+![container](./img/containerSecondPhrase.png "Container")
+```ruby
+@startuml
+!include https://raw.githubusercontent.com/kirchsth/C4-PlantUML/extended/C4_Container.puml
+Person(user, "User", "A user want to rent and use share bike")
+Container(cdn, "CDN", "Cloudfront")
+Container(webapp, "Single Page App", "ReactJS", "Provide functionalities login, rent, return the bike")
+Container_Ext(mobile, "Mobile", "Android/iOS", "Provide functionalities login, rent, return the bike")
+Container_Ext(apiGateway, "Gateway", "AWS Gateway", "Provide API gateway to protect services")
+System_Boundary(c1, "Share Bike") {
+  Container(apiKafkaConsumer, "Consumer", "Golang", "Subscribe the message from Kafka and update bike location to database")
+  Container(apiApplication, "Application", "Echo Golang", "Provide API login, register for users and get, rent, return bike")
+  ContainerDb(db, "Database", "MySQL Cluster", "Holds user, bike information")
+  ContainerDb(cache, "Cache", "Redis", "Hold information which read too much")
+}
+SystemQueue_Ext(kafka, "Kafka Cluster", "Message Broker")
+System_Ext(locationService, "Bike Location", "System manage bike location when user return")
+
+Rel(user, cdn, "uses", "https")
+Rel(cdn, webapp, "uses", "https")
+Rel(user, mobile, "uses", "https")
+Rel(webapp, apiGateway, "uses", "json/https")
+Rel(mobile, apiGateway, "uses", "json/https")
+Rel(apiGateway, locationService, "uses", "https")
+Rel(apiGateway, apiApplication, "uses", "https")
+Rel(apiApplication, cache, "uses", "go-redis", "get bikes, user and location")
+Rel(apiApplication, db, "uses", "gorm", "get bikes, user and location in case cache not found")
+Rel(apiKafkaConsumer, db, "uses", "gorm", "update location")
+Rel(apiKafkaConsumer, cache, "uses", "gorm", "update location")
+Rel(apiKafkaConsumer, kafka, "uses", "subscribe message")
+Rel(locationService, kafka, "uses", "produce message")
+@enduml
+```
+### Component
+![component](./img/componentSecondPhrase.png "Component")
+```ruby
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "User", "A user want to rent and use share bike")
+Container(cdn, "CDN", "Cloudfront")
+Container(webapp, "Single Page App", "ReactJS", "Provide functionalities login, rent, return the bike")
+Container_Ext(mobile, "Mobile", "Android/iOS", "Provide functionalities login, rent, return the bike")
+Container_Ext(apiGateway, "Gateway", "AWS Gateway", "Provide API gateway to protect services")
+ContainerDb(db, "Database", "MySQL Cluster", "Holds user, bike information")
+ContainerDb(cache, "Cache", "Redis", "Hold information which read too much")
+System_Boundary(c1, "Share Bike") {
+  Component(middlewareHandler, "Middleware", "Echo", "Add Request ID, Cors, Authentication")
+  Component(apiKafkaConsumerHandler, "Consumer", "Golang", "Subscribe the message from Kafka and update bike location to database")
+  Component(userHandler, "User Handler", "Echo", "Allow user to register, login")
+  Component(userUseCase, "User UseCase", "Golang", "Provide functionalities and logic for register and login")
+  Component(userRepository, "User Repository", "Golang", "Provide connector to DB for User")
+  Component(bikeHandler, "Bike Handler", "Echo", "Allow user to get, rent, return bikes")
+  Component(bikeUseCase, "Bike UseCase", "Golang", "Provide functionalities and logic for get, rent and return bike")
+  Component(bikeRepository, "Bike Repository", "Golang", "Provide connector to DB for Bike")
+}
+SystemQueue_Ext(kafka, "Kafka Cluster", "Message Broker")
+System_Ext(locationService, "Bike Location", "System manage bike location when user return")
+
+Rel(user, cdn, "uses", "https")
+Rel(cdn, webapp, "uses", "https")
+Rel(user, mobile, "uses", "https")
+Rel(webapp, apiGateway, "uses", "json/https")
+Rel(mobile, apiGateway, "uses", "json/https")
+Rel(apiGateway, locationService, "uses", "https")
+Rel(apiGateway, middlewareHandler, "uses", json/https)
+
+Rel(middlewareHandler, userHandler, "uses")
+Rel(userHandler, userUseCase, "uses")
+Rel(userUseCase, userRepository, "uses")
+Rel(userRepository, db, "uses", "read and write")
+Rel(userRepository, cache, "uses", "read")
+
+Rel(middlewareHandler, bikeHandler, "uses")
+Rel(bikeHandler, bikeUseCase, "uses")
+Rel(bikeUseCase, bikeRepository, "uses")
+Rel(bikeUseCase, userRepository, "uses", "read user information")
+Rel(bikeRepository, db, "uses", "read and write")
+Rel(bikeRepository, cache, "uses", "read")
+
+Rel(locationService, kafka, "uses", "produce message")
+
+Rel(apiKafkaConsumerHandler, kafka, "uses", "subscribe message")
+Rel(apiKafkaConsumerHandler, bikeRepository, "uses", "update location")
+@enduml
+```
+
+### 3rd phrase
+We can consider separating the users' table and logic to authentication service depending on the monitoring and traffic and team structure of the company
+1. Separating the user to authentication service and serving for gateway token
+1. Add BFF for data aggregate data and forward data to services
+### Container
+![container](./img/containerThirdPhrase.png "Container")
+```ruby
+@startuml
+!include https://raw.githubusercontent.com/kirchsth/C4-PlantUML/extended/C4_Container.puml
+Person(user, "User", "A user want to rent and use share bike")
+Container(cdn, "CDN", "Cloudfront")
+Container(webapp, "Single Page App", "ReactJS", "Provide functionalities login, rent, return the bike")
+Container(bff, "BFF", "BFF for React App and Mobile", "Forward request and aggregate data")
+
+Container_Ext(mobile, "Mobile", "Android/iOS", "Provide functionalities login, rent, return the bike")
+Container_Ext(apiGateway, "Gateway", "AWS Gateway", "Provide API gateway to protect services")
+System_Boundary(c1, "Share Bike") {
+  Container(bikeApiKafkaConsumer, "Consumer", "Golang", "Subscribe the message from Kafka and update bike location to database")
+  Container(bikeApiApplication, "Application", "Echo Golang", "Provide API login, register for users and get, rent, return bike")
+  ContainerDb(bikeDb, "Database", "MySQL Cluster", "Holds user, bike information")
+  ContainerDb(bikeCache, "Cache", "Redis", "Hold information which read too much")
+}
+
+System_Boundary(c2, "Authentication") {
+  Container(userApiApplication, "Application", "Echo Golang", "Provide API login, register for users and get, rent, return bike")
+  ContainerDb(userDb, "Database", "MySQL Cluster", "Holds user, bike information")
+  ContainerDb(userCache, "Cache", "Redis", "Hold information which read too much")
+}
+
+SystemQueue_Ext(kafka, "Kafka Cluster", "Message Broker")
+System_Ext(locationService, "Bike Location", "System manage bike location when user return")
+
+Rel(user, cdn, "uses", "https")
+Rel(cdn, webapp, "uses", "https")
+Rel(user, mobile, "uses", "https")
+Rel(webapp, apiGateway, "uses", "json/https")
+Rel(mobile, apiGateway, "uses", "json/https")
+Rel(apiGateway, locationService, "uses", "https")
+Rel(apiGateway, bff, "uses", "https")
+Rel(bff, bikeApiApplication, "uses", "https/grpc")
+Rel(bikeApiApplication, bikeCache, "uses", "go-redis", "get bikes, user and location")
+Rel(bikeApiApplication, bikeDb, "uses", "gorm", "get bikes, user and location in case cache not found")
+Rel(bikeApiKafkaConsumer, bikeDb, "uses", "gorm", "update location")
+Rel(bikeApiKafkaConsumer, bikeCache, "uses", "gorm", "update location")
+Rel(bikeApiKafkaConsumer, kafka, "uses", "subscribe message")
+Rel(locationService, kafka, "uses", "produce message")
+
+Rel(apiGateway, userApiApplication, "uses", "https", "check user credentials")
+Rel(bff, userApiApplication, "uses", "https/grpc")
+Rel(userApiApplication, userDb, "uses", "gorm")
+Rel(userApiApplication, userCache, "uses", "gorm")
+@enduml
+```
+#### Component
+![component](./img/componentThirdPhrase.png "Component")
+```ruby
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "User", "A user want to rent and use share bike")
+Container(cdn, "CDN", "Cloudfront")
+Container(webapp, "Single Page App", "ReactJS", "Provide functionalities login, rent, return the bike")
+Container(bff, "BFF", "HTTPS/GRAPHQL", "Forward, serve request to services and aggregate frontend data")
+
+Container_Ext(mobile, "Mobile", "Android/iOS", "Provide functionalities login, rent, return the bike")
+Container_Ext(apiGateway, "Gateway", "AWS Gateway", "Provide API gateway to protect services")
+ContainerDb(bikeDb, "Bike Database", "MySQL Cluster", "Hold bike information")
+ContainerDb(bikeCache, "Bike Cache", "Redis", "Hold information which read too much")
+
+ContainerDb(userDb, "User Database", "MySQL Cluster", "Hold user information")
+ContainerDb(userCache, "User Cache", "Redis", "Hold information which read too much")
+
+System_Boundary(c1, "Share Bike") {
+  Component(bikeMiddlewareHandler, "Middleware", "Echo", "Add Request ID, Cors, Authentication")
+  Component(bikeApiKafkaConsumerHandler, "Consumer", "Golang", "Subscribe the message from Kafka and update bike location to database")
+  Component(bikeHandler, "Bike Handler", "Echo", "Allow user to get, rent, return bikes")
+  Component(bikeUseCase, "Bike UseCase", "Golang", "Provide functionalities and logic for get, rent and return bike")
+  Component(bikeRepository, "Bike Repository", "Golang", "Provide connector to DB for Bike")
+}
+
+System_Boundary(c2, "Authentication") {
+  Component(userMiddlewareHandler, "Middleware", "Echo", "Add Request ID, Cors, Authentication")
+  Component(userHandler, "User Handler", "Echo", "Allow user to register, login")
+  Component(userUseCase, "User UseCase", "Golang", "Provide functionalities and logic for register and login")
+  Component(userRepository, "User Repository", "Golang", "Provide connector to DB for User")
+}
+
+SystemQueue_Ext(kafka, "Kafka Cluster", "Message Broker")
+System_Ext(locationService, "Bike Location", "System manage bike location when user return")
+
+Rel(user, cdn, "uses", "https")
+Rel(cdn, webapp, "uses", "https")
+Rel(user, mobile, "uses", "https")
+Rel(webapp, apiGateway, "uses", "json/https")
+Rel(mobile, apiGateway, "uses", "json/https")
+Rel(apiGateway, locationService, "uses", "https")
+Rel(apiGateway, userMiddlewareHandler , "uses", "https", "check user credentials for authentication via gateway")
+Rel(apiGateway, bff, "uses", json/https)
+Rel(bff, bikeMiddlewareHandler, "uses", grpc/https, "get bike info")
+Rel(bff, userMiddlewareHandler, "uses", grpc/https, "get user info")
+
+Rel(userMiddlewareHandler, userHandler, "uses")
+Rel(userHandler, userUseCase, "uses")
+Rel(userUseCase, userRepository, "uses")
+Rel(userRepository, userDb, "uses", "read and write")
+Rel(userRepository, userCache, "uses", "read")
+
+Rel(bikeMiddlewareHandler, bikeHandler, "uses")
+Rel(bikeHandler, bikeUseCase, "uses")
+Rel(bikeUseCase, bikeRepository, "uses")
+
+Rel(bikeRepository, bikeDb, "uses", "read and write")
+Rel(bikeRepository, bikeCache, "uses", "read")
+
+Rel(locationService, kafka, "uses", "produce message")
+
+Rel(bikeApiKafkaConsumerHandler, kafka, "uses", "subscribe message")
+Rel(bikeApiKafkaConsumerHandler, bikeRepository, "uses", "update location")
+@enduml
+```
