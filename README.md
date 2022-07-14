@@ -20,11 +20,23 @@
 
 #### Start the Frontend
 1. Go to `frontend` folder
-1. Change the API config for the development environment in `public/config.json`
+1. Change the API config for the development environment in `public/config.json` (NOTE: I hard code the maps API key to make the service easy for starting from beginning. It'll need to remove later)
 1. Run command `yarn install` for installing the dependencies
 1. Run command `yarn start`
 1. Access to the website via `http://localhost:3000`
-
+1. You can use default test account below to access the app
+    ```json
+    {
+      "username": "test1",
+      "password": "password"
+    }
+    ```
+    ```json
+    {
+      "username": "test2",
+      "password": "password"
+    }
+    ```
 ## High-level solution
 ### Context
 For the Services context, the user can register, rent and return the bikes' information
