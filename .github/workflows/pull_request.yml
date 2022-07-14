@@ -12,21 +12,16 @@ jobs:
       working-directory: ./frontend
 
     steps:
-      - name: Checks out repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Fetch origin master
-        run: |
-          git fetch --prune origin master
-          git checkout master
-          git checkout ${{ github.event.pull_request.head.sha }}
-
       - name: Setup Node Environment
         uses: actions/setup-node@v1
         with:
           node-version: 16
+
+      - name: Checks out repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: {{ github.event.pull_request.head.ref }}
 
       - name: Cache node modules
         id: cache
@@ -57,13 +52,16 @@ jobs:
       working-directory: ./api
 
     steps:
-    - name: Setup go environment
-      uses: actions/setup-go@v3
-      with:
-        go-version: ${{ matrix.go-version }}
+      - name: Setup go environment
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
 
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: {{ github.event.pull_request.head.ref }}
 
-    - name: Test
-      run: go test ./...
+      - name: Test
+        run: go test ./...
