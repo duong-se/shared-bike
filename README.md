@@ -1,4 +1,4 @@
-# shared-bike
+# Shared Bike system
 ## How to start projects
 ### By docker-compose
 1. Run command `docker-compose build`
