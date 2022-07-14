@@ -14,15 +14,15 @@ jobs:
         working-directory: ./frontend
 
     steps:
-      - name: Checks out repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
       - name: Setup Node Environment
         uses: actions/setup-node@v1
         with:
           node-version: 16
+
+      - name: Checks out repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Cache node modules
         id: cache
@@ -49,7 +49,6 @@ jobs:
     defaults:
       run:
         working-directory: ./api
-
 
     steps:
       - name: Setup go environment
