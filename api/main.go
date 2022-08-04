@@ -55,9 +55,9 @@ func main() {
 	}
 	// Setup
 	e := echo.New()
-	contextLogger := customlogger.NewContextLogger(e.Logger)
 	e.Logger.SetPrefix("shared-bike")
 	e.Logger.SetLevel(log.INFO)
+	contextLogger := customlogger.NewContextLogger(e.Logger)
 	secret := os.Getenv("SECRET")
 	e.Use(
 		session.Middleware(sessions.NewCookieStore([]byte(secret))),
@@ -90,14 +90,14 @@ func main() {
 	e.GET("/swagger/*", swagger.WrapHandler)
 	root := e.Group("/api/v1")
 	userRepo := user.NewRepository(db)
-	userUseCase := user.NewUseCase(e.Logger, userRepo)
+	userUseCase := user.NewUseCase(contextLogger, userRepo)
 	userHandler := user.NewHandler(userUseCase)
 	userAPIs := root.Group("/users")
 	userAPIs.POST("/login", userHandler.Login)
 	userAPIs.POST("/register", userHandler.Register)
 
 	bikeRepo := bike.NewRepository(db)
-	bikeUseCase := bike.NewUseCase(e.Logger, bikeRepo, userRepo)
+	bikeUseCase := bike.NewUseCase(contextLogger, bikeRepo, userRepo)
 	bikeHandler := bike.NewHandler(bikeUseCase)
 	bikeAPIs := root.Group("/bikes")
 	bikeAPIs.GET("", bikeHandler.GetAllBike)
